@@ -9,30 +9,33 @@ import (
 	"github.com/goravel/framework/support/path"
 )
 
+const envPlaceholders = `
+SUPABASE_URL=
+SUPABASE_KEY=
+`
+
 func main() {
 	setup := packages.Setup(os.Args)
-
-	// The config file will be published to the project's config directory automatically when installing by this way.
-	// You can also publish this config file manually: ./artisan vendor:publish --package=github.com/goravel/example-package
-	config, err := file.GetPackageContent(setup.Paths().Module().String(), "setup/config/hello.go")
+	configContent, err := file.GetPackageContent(setup.Paths().Module().String(), "setup/config/supabase.go")
 	if err != nil {
 		panic(err)
 	}
 
-	serviceProvider := "&hello.ServiceProvider{}"
+	serviceProvider := "&supabase.ServiceProvider{}"
 	moduleImport := setup.Paths().Module().Import()
 
 	setup.Install(
-		// Add the service provider to the providers slice in bootstrap/providers.go
-		modify.AddProviderApply(moduleImport, serviceProvider),
+		// Register ServiceProvider in bootstrap/providers.go (or legacy config/app.go)
+		modify.RegisterProvider(moduleImport, serviceProvider),
 
-		// Add the config file to the config directory
-		modify.File(path.Config("hello.go")).Overwrite(config),
+		// Publish config/supabase.go
+		modify.File(path.Config("supabase.go")).Overwrite(configContent),
+
+		// Append SUPABASE_URL and SUPABASE_KEY placeholders to .env and .env.example when present
+		modify.WhenFileExists(path.Base(".env"), modify.File(path.Base(".env")).Append(envPlaceholders)),
+		modify.WhenFileExists(path.Base(".env.example"), modify.File(path.Base(".env.example")).Append(envPlaceholders)),
 	).Uninstall(
-		// Remove the config file from the config directory
-		modify.File(path.Config("hello.go")).Remove(),
-
-		// Remove the service provider from the providers slice in bootstrap/providers.go
-		modify.RemoveProviderApply(moduleImport, serviceProvider),
+		modify.File(path.Config("supabase.go")).Remove(),
+		modify.UnregisterProvider(moduleImport, serviceProvider),
 	).Execute()
 }

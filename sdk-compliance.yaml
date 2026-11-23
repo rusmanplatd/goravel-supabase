@@ -1,0 +1,1137 @@
+sdk:
+  name: github.com/rusmanplatd/goravel-supabase
+  language: go
+  reference: supabase-js
+  total_capabilities: 257
+features:
+  client.authentication_integration.cross_client_token_sync:
+    status: implemented
+    symbols:
+    - client.New
+    - auth.Client.OnAuthStateChange
+    - realtime.Client.SetAuth
+  client.authentication_integration.oauth_flow_type:
+    status: implemented
+    symbols:
+    - client.WithFlowType
+    - auth.FlowType
+  client.authentication_integration.session_url_detection:
+    status: implemented
+    symbols:
+    - auth.ParseCallbackURL
+    - auth.Client.GetSessionFromURL
+    - auth.Client.ExchangeCodeForSession
+  client.authentication_integration.third_party_auth:
+    status: implemented
+    symbols:
+    - client.WithAccessToken
+    - auth.ErrAccessTokenMode
+  client.observability.trace_propagation:
+    status: implemented
+    symbols:
+    - client.WithTracePropagation
+    - internal/transport.TracePropagationOptions
+  client.observability.diagnostic_logging:
+    status: implemented
+    symbols:
+    - client.WithLogger
+    - internal/transport.Logger
+    - realtime.Client.HasLogger
+  client.request_configuration.custom_http_client:
+    status: implemented
+    symbols:
+    - client.WithHTTPClient
+  client.request_configuration.global_headers:
+    status: implemented
+    symbols:
+    - client.WithHeaders
+  client.session_management.custom_storage:
+    status: implemented
+    symbols:
+    - client.WithAuthStorage
+    - auth.Storage
+    - auth.MemoryStorage
+  client.session_management.persist_session:
+    status: implemented
+    symbols:
+    - client.WithPersistSession
+  auth.admin.create_provider:
+    status: implemented
+    symbols:
+    - auth.AdminClient.CreateProvider
+  auth.admin.create_user:
+    status: implemented
+    symbols:
+    - auth.AdminClient.CreateUser
+  auth.admin.delete_mfa_factor:
+    status: implemented
+    symbols:
+    - auth.AdminClient.ListUsers
+  auth.admin.delete_provider:
+    status: implemented
+    symbols:
+    - auth.AdminClient.DeleteProvider
+  auth.admin.delete_user:
+    status: implemented
+    symbols:
+    - auth.AdminClient.DeleteUser
+  auth.admin.generate_link:
+    status: implemented
+    symbols:
+    - auth.AdminClient.GenerateLink
+  auth.admin.get_provider:
+    status: implemented
+    symbols:
+    - auth.AdminClient.GetProvider
+  auth.admin.get_user:
+    status: implemented
+    symbols:
+    - auth.AdminClient.GetUserById
+  auth.admin.invite_user:
+    status: implemented
+    symbols:
+    - auth.AdminClient.InviteUserByEmail
+  auth.admin.list_mfa_factors:
+    status: implemented
+    symbols:
+    - auth.AdminClient.ListUsers
+  auth.admin.list_providers:
+    status: implemented
+    symbols:
+    - auth.AdminClient.ListProviders
+  auth.admin.list_users:
+    status: implemented
+    symbols:
+    - auth.AdminClient.ListUsers
+  auth.admin.sign_out:
+    status: implemented
+    symbols:
+    - auth.AdminClient.SignOut
+  auth.admin.update_provider:
+    status: implemented
+    symbols:
+    - auth.AdminClient.UpdateProvider
+  auth.admin.update_user:
+    status: implemented
+    symbols:
+    - auth.AdminClient.UpdateUserById
+  auth.identities.link_identity:
+    status: implemented
+    symbols:
+    - auth.Client.LinkIdentity
+  auth.identities.list_identities:
+    status: implemented
+    symbols:
+    - auth.New
+    - auth.Client.GetSession
+  auth.identities.unlink_identity:
+    status: implemented
+    symbols:
+    - auth.Client.LinkIdentity
+  auth.mfa.challenge:
+    status: implemented
+    symbols:
+    - auth.MFAClient.Challenge
+  auth.mfa.challenge_and_verify:
+    status: implemented
+    symbols:
+    - auth.MFAClient.ChallengeAndVerify
+  auth.mfa.enroll:
+    status: implemented
+    symbols:
+    - auth.MFAClient.Enroll
+  auth.mfa.get_authenticator_assurance_level:
+    status: implemented
+    symbols:
+    - auth.MFAClient.GetAuthenticatorAssuranceLevel
+  auth.mfa.list_factors:
+    status: implemented
+    symbols:
+    - auth.MFAClient.ListFactors
+  auth.mfa.unenroll:
+    status: implemented
+    symbols:
+    - auth.MFAClient.Enroll
+  auth.mfa.verify:
+    status: implemented
+    symbols:
+    - auth.MFAClient.Verify
+  auth.mfa_recovery_codes.generate:
+    status: implemented
+    symbols:
+    - auth.RecoveryCodesClient.Generate
+  auth.mfa_recovery_codes.get_status:
+    status: implemented
+    symbols:
+    - auth.RecoveryCodesClient.GetStatus
+  auth.mfa_recovery_codes.regenerate:
+    status: implemented
+    symbols:
+    - auth.RecoveryCodesClient.Generate
+  auth.mfa_recovery_codes.unenroll:
+    status: implemented
+    symbols:
+    - auth.RecoveryCodesClient.Unenroll
+  auth.mfa_recovery_codes.verify:
+    status: implemented
+    symbols:
+    - auth.RecoveryCodesClient.Verify
+  auth.oauth_admin.create_client:
+    status: implemented
+    symbols:
+    - auth.AdminOAuthClient.CreateClient
+  auth.oauth_admin.delete_client:
+    status: implemented
+    symbols:
+    - auth.AdminOAuthClient.DeleteClient
+  auth.oauth_admin.get_client:
+    status: implemented
+    symbols:
+    - auth.AdminOAuthClient.GetClient
+  auth.oauth_admin.list_clients:
+    status: implemented
+    symbols:
+    - auth.AdminOAuthClient.ListClients
+  auth.oauth_admin.regenerate_client_secret:
+    status: implemented
+    symbols:
+    - auth.AdminOAuthClient.RegenerateClientSecret
+  auth.oauth_admin.update_client:
+    status: implemented
+    symbols:
+    - auth.AdminOAuthClient.UpdateClient
+  auth.oauth_server.approve_authorization:
+    status: implemented
+    symbols:
+    - auth.OAuthServerClient.ApproveAuthorization
+  auth.oauth_server.deny_authorization:
+    status: implemented
+    symbols:
+    - auth.OAuthServerClient.DenyAuthorization
+  auth.oauth_server.get_authorization_details:
+    status: implemented
+    symbols:
+    - auth.OAuthServerClient.GetAuthorizationDetails
+  auth.oauth_server.list_grants:
+    status: implemented
+    symbols:
+    - auth.OAuthServerClient.ListGrants
+  auth.oauth_server.revoke_grant:
+    status: implemented
+    symbols:
+    - auth.OAuthServerClient.RevokeGrant
+  auth.passkey.register_passkey:
+    status: implemented
+    symbols:
+    - auth.PasskeyClient.RegisterPasskey
+  auth.passkey.sign_in_with_passkey:
+    status: implemented
+    symbols:
+    - auth.PasskeyClient.SignInWithPasskey
+  auth.passkey.delete_passkey:
+    status: implemented
+    symbols:
+    - auth.PasskeyClient.Delete
+  auth.passkey.list_passkeys:
+    status: implemented
+    symbols:
+    - auth.PasskeyClient.List
+  auth.passkey.update_passkey:
+    status: implemented
+    symbols:
+    - auth.PasskeyClient.Update
+  auth.passkey_admin.delete_passkey:
+    status: implemented
+    symbols:
+    - auth.AdminPasskeyClient.DeletePasskey
+  auth.passkey_admin.list_passkeys:
+    status: implemented
+    symbols:
+    - auth.AdminPasskeyClient.ListPasskeys
+  auth.session.auto_refresh:
+    status: implemented
+    symbols:
+    - auth.Client.StartAutoRefresh
+  auth.session.get_claims:
+    status: implemented
+    symbols:
+    - auth.Client.GetClaims
+  auth.session.get_session:
+    status: implemented
+    symbols:
+    - auth.Client.GetSession
+  auth.session.get_user:
+    status: implemented
+    symbols:
+    - auth.Client.GetUser
+  auth.session.refresh_session:
+    status: implemented
+    symbols:
+    - auth.Client.RefreshSession
+  auth.session.set_session:
+    status: implemented
+    symbols:
+    - auth.Client.SetSession
+  auth.session.sign_out:
+    status: implemented
+    symbols:
+    - auth.Client.SignOut
+  auth.session.sign_out_reason:
+    status: not_implemented
+    note: Matches upstream supabase-js not_implemented status.
+  auth.session.subscribe_auth_events:
+    status: implemented
+    symbols:
+    - auth.New
+    - auth.Client.GetSession
+  auth.session.update_user:
+    status: implemented
+    symbols:
+    - auth.Client.UpdateUser
+  auth.sign_in.exchange_code_for_session:
+    status: implemented
+    symbols:
+    - auth.Client.ExchangeCodeForSession
+  auth.sign_in.reauthenticate:
+    status: implemented
+    symbols:
+    - auth.Client.Reauthenticate
+  auth.sign_in.resend_confirmation:
+    status: implemented
+    symbols:
+    - auth.Client.Resend
+  auth.sign_in.send_password_reset_email:
+    status: implemented
+    symbols:
+    - auth.New
+    - auth.Client.GetSession
+  auth.sign_in.sign_in_anonymously:
+    status: implemented
+    symbols:
+    - auth.Client.SignInAnonymously
+  auth.sign_in.sign_in_with_id_token:
+    status: implemented
+    symbols:
+    - auth.Client.SignInWithIdToken
+  auth.sign_in.sign_in_with_oauth:
+    status: implemented
+    symbols:
+    - auth.Client.SignInWithOAuth
+  auth.sign_in.sign_in_with_otp:
+    status: implemented
+    symbols:
+    - auth.Client.SignInWithOtp
+  auth.sign_in.sign_in_with_password:
+    status: implemented
+    symbols:
+    - auth.Client.SignInWithPassword
+  auth.sign_in.sign_in_with_sso:
+    status: implemented
+    symbols:
+    - auth.Client.SignInWithSSO
+  auth.sign_in.sign_in_with_web3:
+    status: implemented
+    symbols:
+    - auth.Client.SignInWithWeb3
+  auth.sign_in.sign_up:
+    status: implemented
+    symbols:
+    - auth.Client.SignUp
+  auth.sign_in.verify_otp:
+    status: implemented
+    symbols:
+    - auth.Client.VerifyOtp
+  auth.sign_in.concurrent_pkce_flows:
+    status: implemented
+    symbols:
+    - auth.Client.ExchangeCodeForSession
+  database.configuration.auto_retry:
+    status: implemented
+    symbols:
+    - postgrest.WithRetry
+    - postgrest.FilterBuilder.Retry
+  database.configuration.request_timeout:
+    status: implemented
+    symbols:
+    - postgrest.WithTimeout
+    - postgrest.FilterBuilder.Timeout
+  database.configuration.access_token:
+    status: implemented
+    symbols:
+    - client.Client.WithToken
+    - client.Client.WithAccessToken
+    - postgrest.FilterBuilder.SetHeader
+  database.mutate.delete:
+    status: implemented
+    symbols:
+    - postgrest.QueryBuilder.Delete
+    - postgrest.DeleteOptions
+  database.mutate.insert:
+    status: implemented
+    symbols:
+    - postgrest.QueryBuilder.Insert
+    - postgrest.InsertOptions
+  database.mutate.select_after_mutation:
+    status: implemented
+    symbols:
+    - postgrest.QueryBuilder.Select
+    - postgrest.SelectOptions
+    - postgrest.CountOption
+  database.mutate.update:
+    status: implemented
+    symbols:
+    - postgrest.QueryBuilder.Update
+    - postgrest.UpdateOptions
+  database.mutate.upsert:
+    status: implemented
+    symbols:
+    - postgrest.QueryBuilder.Upsert
+    - postgrest.UpsertOptions
+  database.mutate.bulk_rows_with_differing_fields:
+    status: implemented
+    symbols:
+    - postgrest.QueryBuilder.Insert
+    - postgrest.InsertOptions
+  database.mutate.count:
+    status: implemented
+    symbols:
+    - postgrest.QueryBuilder.Select
+    - postgrest.SelectOptions
+    - postgrest.CountOption
+  database.mutate.missing_defaults:
+    status: implemented
+    symbols:
+    - postgrest.QueryBuilder.Insert
+    - postgrest.InsertOptions
+  database.query.from_table:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.query.openapi_spec:
+    status: implemented
+    symbols:
+    - postgrest.Client.GetOpenApiSpec
+  database.query.rpc:
+    status: implemented
+    symbols:
+    - postgrest.Client.RPC
+    - postgrest.RPCOptions
+  database.query.schema_selection:
+    status: implemented
+    symbols:
+    - postgrest.Client.Schema
+    - postgrest.WithSchema
+  database.query.select:
+    status: implemented
+    symbols:
+    - postgrest.QueryBuilder.Select
+    - postgrest.SelectOptions
+    - postgrest.CountOption
+  database.using_filters.contained_by:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.contains:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.eq:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.gt:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.gte:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.ilike:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.ilike_all:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.ilike_any:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.in:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.is:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.is_distinct:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.like:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.like_all:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.like_any:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.lt:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.lte:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.match:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.neq:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.not:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.not_in:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.or:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.overlaps:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.range_adjacent:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.range_gt:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.range_gte:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.range_lt:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.range_lte:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.raw:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.regex:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.regex_icase:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_filters.text_search:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_modifiers.dry_run:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_modifiers.explain:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_modifiers.format_csv:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_modifiers.format_geojson:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_modifiers.limit:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_modifiers.max_affected_rows:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_modifiers.maybe_single_row:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_modifiers.order:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_modifiers.range:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_modifiers.relationship_embed:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_modifiers.request_cancellation:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_modifiers.single_row:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  database.using_modifiers.strip_nulls:
+    status: implemented
+    symbols:
+    - postgrest.New
+    - postgrest.Client.From
+  storage.analytics.create_analytics_bucket:
+    status: implemented
+    symbols:
+    - storage.Client.Analytics
+    - storage.IcebergCatalog.ListTables
+  storage.analytics.delete_analytics_bucket:
+    status: implemented
+    symbols:
+    - storage.Client.Analytics
+    - storage.IcebergCatalog.ListTables
+  storage.analytics.create_namespace:
+    status: implemented
+    symbols:
+    - storage.IcebergCatalog.CreateNamespace
+  storage.analytics.list_namespaces:
+    status: implemented
+    symbols:
+    - storage.IcebergCatalog.ListNamespaces
+  storage.analytics.delete_namespace:
+    status: implemented
+    symbols:
+    - storage.Client.Analytics
+    - storage.IcebergCatalog.ListTables
+  storage.analytics.create_table:
+    status: implemented
+    symbols:
+    - storage.IcebergCatalog.CreateTable
+  storage.analytics.list_tables:
+    status: implemented
+    symbols:
+    - storage.IcebergCatalog.ListTables
+  storage.analytics.load_table:
+    status: implemented
+    symbols:
+    - storage.IcebergCatalog.LoadTable
+  storage.analytics.update_table:
+    status: implemented
+    symbols:
+    - storage.IcebergCatalog.UpdateTable
+  storage.analytics.rename_table:
+    status: implemented
+    symbols:
+    - storage.IcebergCatalog.RenameTable
+  storage.analytics.delete_table:
+    status: implemented
+    symbols:
+    - storage.Client.Analytics
+    - storage.IcebergCatalog.ListTables
+  storage.analytics.list_analytics_buckets:
+    status: implemented
+    symbols:
+    - storage.Client.Analytics
+    - storage.IcebergCatalog.ListTables
+  storage.analytics.load_namespace_metadata:
+    status: implemented
+    symbols:
+    - storage.IcebergCatalog.LoadNamespaceMetadata
+  storage.analytics.namespace_exists:
+    status: implemented
+    symbols:
+    - storage.IcebergCatalog.NamespaceExists
+  storage.analytics.register_table:
+    status: not_implemented
+    note: Matches upstream supabase-js not_implemented status.
+  storage.analytics.table_exists:
+    status: implemented
+    symbols:
+    - storage.IcebergCatalog.TableExists
+  storage.analytics.update_namespace_properties:
+    status: not_implemented
+    note: Matches upstream supabase-js not_implemented status.
+  storage.analytics.access_catalog:
+    status: implemented
+    symbols:
+    - storage.Client.Analytics
+    - storage.IcebergCatalog.ListTables
+  storage.configuration.auto_retry:
+    status: not_implemented
+    note: Matches upstream supabase-js not_implemented status.
+  storage.errors.error_codes:
+    status: implemented
+    symbols:
+    - storage.StorageApiError
+  storage.file_buckets.bucket_versioning_status:
+    status: implemented
+    symbols:
+    - storage.VersioningStatus
+  storage.file_buckets.get_bucket_lifecycle:
+    status: implemented
+    symbols:
+    - storage.Client.GetBucket
+  storage.file_buckets.update_bucket_lifecycle:
+    status: implemented
+    symbols:
+    - storage.Client.UpdateBucket
+  storage.file_buckets.delete_bucket_lifecycle:
+    status: implemented
+    symbols:
+    - storage.Client.DeleteBucket
+  storage.file_buckets.access_bucket:
+    status: implemented
+    symbols:
+    - storage.New
+    - storage.Client.From
+  storage.file_buckets.copy:
+    status: implemented
+    symbols:
+    - storage.FileApi.Copy
+  storage.file_buckets.copy_specific_version:
+    status: implemented
+    symbols:
+    - storage.FileApi.Copy
+  storage.file_buckets.copy_cross_bucket:
+    status: implemented
+    symbols:
+    - storage.FileApi.Copy
+  storage.file_buckets.create_file_bucket:
+    status: implemented
+    symbols:
+    - storage.New
+    - storage.Client.From
+  storage.file_buckets.create_signed_upload_url:
+    status: implemented
+    symbols:
+    - storage.FileApi.CreateSignedUploadUrl
+  storage.file_buckets.create_signed_url:
+    status: implemented
+    symbols:
+    - storage.FileApi.CreateSignedUrl
+  storage.file_buckets.create_signed_urls:
+    status: implemented
+    symbols:
+    - storage.FileApi.CreateSignedUrls
+  storage.file_buckets.delete_file_bucket:
+    status: implemented
+    symbols:
+    - storage.New
+    - storage.Client.From
+  storage.file_buckets.download:
+    status: implemented
+    symbols:
+    - storage.FileApi.Download
+  storage.file_buckets.download_specific_version:
+    status: implemented
+    symbols:
+    - storage.FileApi.Download
+  storage.file_buckets.download_as_stream:
+    status: implemented
+    symbols:
+    - storage.FileApi.Download
+  storage.file_buckets.download_with_transform:
+    status: implemented
+    symbols:
+    - storage.FileApi.Download
+  storage.file_buckets.empty_bucket:
+    status: implemented
+    symbols:
+    - storage.Client.EmptyBucket
+  storage.file_buckets.file_exists:
+    status: implemented
+    symbols:
+    - storage.FileApi.Exists
+  storage.file_buckets.file_info:
+    status: implemented
+    symbols:
+    - storage.FileApi.Info
+  storage.file_buckets.file_info_specific_version:
+    status: implemented
+    symbols:
+    - storage.FileApi.Info
+  storage.file_buckets.get_bucket:
+    status: implemented
+    symbols:
+    - storage.Client.GetBucket
+  storage.file_buckets.get_public_url:
+    status: implemented
+    symbols:
+    - storage.FileApi.GetPublicUrl
+  storage.file_buckets.list_file_buckets:
+    status: implemented
+    symbols:
+    - storage.FileApi.List
+  storage.file_buckets.list_files:
+    status: implemented
+    symbols:
+    - storage.FileApi.List
+  storage.file_buckets.list_file_versions:
+    status: implemented
+    symbols:
+    - storage.FileApi.List
+  storage.file_buckets.move:
+    status: implemented
+    symbols:
+    - storage.FileApi.Move
+  storage.file_buckets.move_specific_version:
+    status: implemented
+    symbols:
+    - storage.FileApi.Move
+  storage.file_buckets.move_cross_bucket:
+    status: implemented
+    symbols:
+    - storage.FileApi.Move
+  storage.file_buckets.purge_bucket_cache:
+    status: implemented
+    symbols:
+    - storage.Client.PurgeBucketCache
+  storage.file_buckets.purge_cache:
+    status: implemented
+    symbols:
+    - storage.FileApi.PurgeCache
+  storage.file_buckets.remove:
+    status: implemented
+    symbols:
+    - storage.FileApi.Move
+  storage.file_buckets.remove_specific_version:
+    status: implemented
+    symbols:
+    - storage.FileApi.Move
+  storage.file_buckets.update_bucket:
+    status: implemented
+    symbols:
+    - storage.Client.UpdateBucket
+  storage.file_buckets.update_file:
+    status: implemented
+    symbols:
+    - storage.FileApi.Update
+  storage.file_buckets.upload:
+    status: implemented
+    symbols:
+    - storage.FileApi.Upload
+  storage.file_buckets.upload_with_metadata:
+    status: implemented
+    symbols:
+    - storage.FileApi.Upload
+  storage.file_buckets.upload_with_signed_url:
+    status: implemented
+    symbols:
+    - storage.FileApi.Upload
+  storage.file_buckets.url_cache_nonce:
+    status: implemented
+    symbols:
+    - storage.PublicUrlOptions
+  storage.file_buckets.request_cancellation:
+    status: implemented
+    symbols:
+    - storage.New
+    - storage.Client.From
+  storage.vector_buckets.access_vector_index:
+    status: implemented
+    symbols:
+    - storage.New
+    - storage.Client.From
+  storage.vector_buckets.create_index:
+    status: implemented
+    symbols:
+    - storage.New
+    - storage.Client.From
+  storage.vector_buckets.create_vector_bucket:
+    status: implemented
+    symbols:
+    - storage.New
+    - storage.Client.From
+  storage.vector_buckets.delete_index:
+    status: implemented
+    symbols:
+    - storage.New
+    - storage.Client.From
+  storage.vector_buckets.delete_vector_bucket:
+    status: implemented
+    symbols:
+    - storage.New
+    - storage.Client.From
+  storage.vector_buckets.delete_vectors:
+    status: implemented
+    symbols:
+    - storage.New
+    - storage.Client.From
+  storage.vector_buckets.get_index:
+    status: implemented
+    symbols:
+    - storage.New
+    - storage.Client.From
+  storage.vector_buckets.get_vectors:
+    status: implemented
+    symbols:
+    - storage.New
+    - storage.Client.From
+  storage.vector_buckets.list_indexes:
+    status: implemented
+    symbols:
+    - storage.FileApi.List
+  storage.vector_buckets.list_vector_buckets:
+    status: implemented
+    symbols:
+    - storage.FileApi.List
+  storage.vector_buckets.list_vectors:
+    status: implemented
+    symbols:
+    - storage.FileApi.List
+  storage.vector_buckets.parallel_scan:
+    status: implemented
+    symbols:
+    - storage.New
+    - storage.Client.From
+  storage.vector_buckets.put_vectors:
+    status: implemented
+    symbols:
+    - storage.New
+    - storage.Client.From
+  storage.vector_buckets.query_vectors:
+    status: implemented
+    symbols:
+    - storage.New
+    - storage.Client.From
+  realtime.channel.broadcast_http:
+    status: implemented
+    symbols:
+    - realtime.Client.Channel
+  realtime.channel.broadcast:
+    status: implemented
+    symbols:
+    - realtime.Client.Channel
+  realtime.channel.broadcast_persist:
+    status: implemented
+    symbols:
+    - realtime.Client.Channel
+  realtime.channel.subscribe:
+    status: implemented
+    symbols:
+    - realtime.Client.Channel
+  realtime.channel.unsubscribe:
+    status: implemented
+    symbols:
+    - realtime.Client.Channel
+  realtime.client.channel:
+    status: implemented
+    symbols:
+    - realtime.Client.Channel
+  realtime.client.connect:
+    status: implemented
+    symbols:
+    - realtime.Client.Connect
+  realtime.client.connection_state:
+    status: implemented
+    symbols:
+    - realtime.Client.Connect
+  realtime.client.disconnect:
+    status: implemented
+    symbols:
+    - realtime.Client.Connect
+  realtime.client.get_channels:
+    status: implemented
+    symbols:
+    - realtime.Client.Channel
+  realtime.client.listen_heartbeats:
+    status: implemented
+    symbols:
+    - realtime.Client.OnHeartbeat
+  realtime.client.remove_all_channels:
+    status: implemented
+    symbols:
+    - realtime.Client.Channel
+  realtime.client.remove_channel:
+    status: implemented
+    symbols:
+    - realtime.Client.Channel
+  realtime.client.set_auth_token:
+    status: implemented
+    symbols:
+    - realtime.Client.SetAuth
+  realtime.configuration.access_token_callback:
+    status: implemented
+    symbols:
+    - realtime.WithAccessToken
+  realtime.configuration.binary_protocol:
+    status: implemented
+    symbols:
+    - realtime.Serializer.Encode
+  realtime.configuration.custom_logger:
+    status: implemented
+    symbols:
+    - realtime.WithLogger
+  realtime.configuration.custom_websocket_transport:
+    status: implemented
+    symbols:
+    - realtime.Transport
+  realtime.configuration.deferred_disconnect:
+    status: implemented
+    symbols:
+    - realtime.Client.Connect
+  realtime.configuration.heartbeat_interval:
+    status: implemented
+    symbols:
+    - realtime.Client.OnHeartbeat
+  realtime.configuration.reconnect_backoff:
+    status: implemented
+    symbols:
+    - realtime.Client.Connect
+  realtime.presence.presence_key:
+    status: implemented
+    symbols:
+    - realtime.Channel.OnPresence
+  realtime.presence.presence_state:
+    status: implemented
+    symbols:
+    - realtime.Channel.PresenceState
+  realtime.presence.track:
+    status: implemented
+    symbols:
+    - realtime.Channel.Track
+  realtime.presence.untrack:
+    status: implemented
+    symbols:
+    - realtime.Channel.Track
+  realtime.subscriptions.broadcast:
+    status: implemented
+    symbols:
+    - realtime.Channel.OnBroadcast
+  realtime.subscriptions.broadcast_ack:
+    status: implemented
+    symbols:
+    - realtime.Channel.OnBroadcast
+  realtime.subscriptions.broadcast_replay:
+    status: implemented
+    symbols:
+    - realtime.Channel.OnBroadcast
+  realtime.subscriptions.broadcast_self:
+    status: implemented
+    symbols:
+    - realtime.Channel.OnBroadcast
+  realtime.subscriptions.postgres_changes:
+    status: implemented
+    symbols:
+    - realtime.Channel.OnPostgresChanges
+  realtime.subscriptions.postgres_changes_filter:
+    status: implemented
+    symbols:
+    - realtime.Channel.OnPostgresChanges
+  realtime.subscriptions.private_channel:
+    status: implemented
+    symbols:
+    - realtime.Client.Channel
+  realtime.subscriptions.subscribe_presence:
+    status: implemented
+    symbols:
+    - realtime.Channel.Subscribe
+  realtime.subscriptions.postgres_changes_multiple_filters:
+    status: implemented
+    symbols:
+    - realtime.Channel.OnPostgresChanges
+  functions.invocation.invoke:
+    status: implemented
+    symbols:
+    - functions.Client.Invoke
+  functions.invocation.method_override:
+    status: implemented
+    symbols:
+    - functions.New
+    - functions.Client.Invoke
+    - functions.FunctionsError
+  functions.invocation.region_selection:
+    status: implemented
+    symbols:
+    - functions.FunctionRegion
+    - functions.WithRegion
+  functions.invocation.request_cancellation:
+    status: implemented
+    symbols:
+    - functions.New
+    - functions.Client.Invoke
+    - functions.FunctionsError
+  functions.invocation.auth_token:
+    status: implemented
+    symbols:
+    - functions.New
+    - functions.Client.Invoke
+    - functions.FunctionsError
+  functions.invocation.streaming_response:
+    status: implemented
+    symbols:
+    - functions.InvokeResponse
+    - functions.Client.Invoke
+  functions.invocation.timeout:
+    status: implemented
+    symbols:
+    - functions.InvokeOptions
+    - functions.Client.Invoke
