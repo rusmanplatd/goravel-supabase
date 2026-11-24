@@ -91,8 +91,16 @@ func New(supabaseURL, supabaseKey string, optionFns ...Option) (*Client, error) 
 	if opts.Lock != nil {
 		authOpts = append(authOpts, auth.WithLock(opts.Lock))
 	}
-	if opts.StorageKey != "" {
-		authOpts = append(authOpts, auth.WithStorageKey(opts.StorageKey))
+	storageKey := opts.StorageKey
+	if storageKey == "" {
+		if host := parsed.Hostname(); host != "" {
+			if ref := strings.Split(host, ".")[0]; ref != "" {
+				storageKey = "sb-" + ref + "-auth-token"
+			}
+		}
+	}
+	if storageKey != "" {
+		authOpts = append(authOpts, auth.WithStorageKey(storageKey))
 	}
 	if opts.PersistSession != nil {
 		authOpts = append(authOpts, auth.WithPersistSession(*opts.PersistSession))
@@ -137,14 +145,15 @@ func New(supabaseURL, supabaseKey string, optionFns ...Option) (*Client, error) 
 }
 
 func (c *Client) wireServices(tokenProvider transport.TokenProvider, schema string) {
-	serviceHTTP := transport.NewHTTPClient(c.baseHTTP, transport.Config{
+	serviceCfg := transport.Config{
 		SupabaseURL:      c.supabaseURL,
 		APIKey:           c.supabaseKey,
 		Headers:          c.opts.Headers,
 		GetAccessToken:   tokenProvider,
 		TracePropagation: c.opts.TracePropagation,
 		Logger:           c.opts.Logger,
-	})
+	}
+	serviceHTTP := transport.NewHTTPClient(c.baseHTTP, serviceCfg)
 
 	functionsHTTP := transport.NewHTTPClient(c.baseHTTP, transport.Config{
 		SupabaseURL:        c.supabaseURL,
@@ -158,6 +167,9 @@ func (c *Client) wireServices(tokenProvider transport.TokenProvider, schema stri
 
 	pgOpts := []postgrest.Option{
 		postgrest.WithHTTPClient(serviceHTTP),
+		postgrest.WithHTTPClientWrapper(func(custom *http.Client) *http.Client {
+			return transport.NewHTTPClient(custom, serviceCfg)
+		}),
 		postgrest.WithSchema(schema),
 	}
 	if c.opts.DBTimeout > 0 {

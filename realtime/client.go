@@ -2,6 +2,7 @@ package realtime
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -49,6 +50,8 @@ type Client struct {
 	refCounter          atomic.Uint64
 	loopCancel          context.CancelFunc
 	loopWg              sync.WaitGroup
+	reconnectCancel     context.CancelFunc
+	reconnecting        bool
 	disconnectTimer     *time.Timer
 	intentionalClose    bool
 	reconnectTries      int
@@ -243,6 +246,9 @@ func (c *Client) Connect(ctx context.Context) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
+	if c.vsn != "1.0.0" && c.vsn != "2.0.0" {
+		return fmt.Errorf("realtime: unsupported Phoenix serializer vsn %q (expected \"1.0.0\" or \"2.0.0\")", c.vsn)
+	}
 	c.mu.Lock()
 	if c.disconnectTimer != nil {
 		c.disconnectTimer.Stop()
@@ -283,24 +289,12 @@ func (c *Client) Connect(ctx context.Context) error {
 	return nil
 }
 
-// Disconnect closes the WebSocket connection (honoring deferred disconnect delay if configured).
+// Disconnect immediately closes the WebSocket connection.
 func (c *Client) Disconnect(code ...int) error {
 	closeCode := 1000
 	if len(code) > 0 && code[0] > 0 {
 		closeCode = code[0]
 	}
-	c.mu.Lock()
-	if c.disconnectDelay > 0 && c.conn != nil {
-		if c.disconnectTimer != nil {
-			c.disconnectTimer.Stop()
-		}
-		c.disconnectTimer = time.AfterFunc(c.disconnectDelay, func() {
-			_ = c.disconnectNow(closeCode)
-		})
-		c.mu.Unlock()
-		return nil
-	}
-	c.mu.Unlock()
 	return c.disconnectNow(closeCode)
 }
 
@@ -311,6 +305,11 @@ func (c *Client) disconnectNow(closeCode int) error {
 		c.disconnectTimer.Stop()
 		c.disconnectTimer = nil
 	}
+	if c.reconnectCancel != nil {
+		c.reconnectCancel()
+		c.reconnectCancel = nil
+	}
+	c.reconnecting = false
 	cancel := c.loopCancel
 	c.loopCancel = nil
 	conn := c.conn
@@ -337,11 +336,21 @@ func (c *Client) push(ctx context.Context, msg Message) error {
 	c.mu.RLock()
 	conn := c.conn
 	state := c.state
+	vsn := c.vsn
 	c.mu.RUnlock()
 	if conn == nil || state != StateOpen {
 		return nil
 	}
-	isBin, data, err := c.serializer.Encode(msg)
+	var (
+		isBin bool
+		data  []byte
+		err   error
+	)
+	if vsn == "1.0.0" {
+		data, err = c.serializer.EncodeV1(msg)
+	} else {
+		isBin, data, err = c.serializer.Encode(msg)
+	}
 	if err != nil {
 		return err
 	}
@@ -357,40 +366,38 @@ func (c *Client) readLoop(ctx context.Context, conn Conn) {
 		if err != nil {
 			c.mu.Lock()
 			intentional := c.intentionalClose
+			var oldCancel context.CancelFunc
 			if c.conn == conn {
 				c.conn = nil
 				c.state = StateClosed
+				oldCancel = c.loopCancel
+				c.loopCancel = nil
 			}
-			tries := c.reconnectTries + 1
-			c.reconnectTries = tries
+			alreadyReconnecting := c.reconnecting
+			var reconnCtx context.Context
+			if !intentional && ctx.Err() == nil && !alreadyReconnecting {
+				c.reconnecting = true
+				var rCancel context.CancelFunc
+				reconnCtx, rCancel = context.WithCancel(context.Background())
+				c.reconnectCancel = rCancel
+			}
 			c.mu.Unlock()
 
-			if intentional || ctx.Err() != nil {
-				return
+			if oldCancel != nil {
+				oldCancel()
 			}
-			// Schedule reconnect using configured backoff.
-			delay := c.reconnectAfterMs(tries)
-			timer := time.NewTimer(delay)
-			select {
-			case <-ctx.Done():
-				timer.Stop()
-				return
-			case <-timer.C:
-				go func() {
-					if err := c.Connect(context.Background()); err == nil {
-						c.mu.RLock()
-						chs := append([]*Channel(nil), c.channels...)
-						c.mu.RUnlock()
-						for _, ch := range chs {
-							_ = ch.sendJoin(context.Background())
-						}
-					}
-				}()
+			if reconnCtx != nil {
+				go c.reconnectLoop(reconnCtx)
 			}
 			return
 		}
 
-		msg, err := c.serializer.Decode(isBin, data)
+		var msg *Message
+		if c.vsn == "1.0.0" {
+			msg, err = c.serializer.DecodeV1(data)
+		} else {
+			msg, err = c.serializer.Decode(isBin, data)
+		}
 		if err != nil {
 			c.logger.Warn("realtime: decode error", "err", err)
 			continue
@@ -417,6 +424,43 @@ func (c *Client) readLoop(ctx context.Context, conn Conn) {
 			if ch.topic == msg.Topic {
 				ch.handleMessage(msg)
 			}
+		}
+	}
+}
+
+func (c *Client) reconnectLoop(ctx context.Context) {
+	defer func() {
+		c.mu.Lock()
+		c.reconnecting = false
+		c.mu.Unlock()
+	}()
+	for tries := 1; ; tries++ {
+		delay := c.reconnectAfterMs(tries)
+		timer := time.NewTimer(delay)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return
+		case <-timer.C:
+		}
+
+		c.mu.RLock()
+		intentional := c.intentionalClose
+		c.mu.RUnlock()
+		if intentional || ctx.Err() != nil {
+			return
+		}
+
+		if err := c.Connect(ctx); err == nil {
+			c.mu.RLock()
+			chs := append([]*Channel(nil), c.channels...)
+			c.mu.RUnlock()
+			for _, ch := range chs {
+				if ch.State() != ChannelClosed {
+					_ = ch.sendJoin(context.Background())
+				}
+			}
+			return
 		}
 	}
 }
@@ -470,6 +514,10 @@ func (c *Client) Channel(name string, cfg ...ChannelConfig) *Channel {
 	}
 	ch := newChannel(c, name, cc)
 	c.mu.Lock()
+	if c.disconnectTimer != nil {
+		c.disconnectTimer.Stop()
+		c.disconnectTimer = nil
+	}
 	c.channels = append(c.channels, ch)
 	c.mu.Unlock()
 	return ch
@@ -496,6 +544,14 @@ func (c *Client) RemoveChannel(ctx context.Context, ch *Channel) error {
 		}
 	}
 	c.channels = filtered
+	if len(c.channels) == 0 && c.disconnectDelay > 0 && c.conn != nil {
+		if c.disconnectTimer != nil {
+			c.disconnectTimer.Stop()
+		}
+		c.disconnectTimer = time.AfterFunc(c.disconnectDelay, func() {
+			_ = c.disconnectNow(1000)
+		})
+	}
 	c.mu.Unlock()
 	return err
 }

@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -161,6 +162,16 @@ func formatContainsValue(value any) string {
 		}
 		return "{" + strings.Join(parts, ",") + "}"
 	default:
+		if value != nil {
+			rv := reflect.ValueOf(value)
+			if (rv.Kind() == reflect.Slice || rv.Kind() == reflect.Array) && rv.Type().Elem().Kind() != reflect.Uint8 {
+				parts := make([]string, rv.Len())
+				for i := 0; i < rv.Len(); i++ {
+					parts[i] = fmt.Sprint(rv.Index(i).Interface())
+				}
+				return "{" + strings.Join(parts, ",") + "}"
+			}
+		}
 		b, err := json.Marshal(v)
 		if err != nil {
 			return fmt.Sprint(v)
@@ -239,6 +250,10 @@ func (fb *FilterBuilder) Match(query map[string]any) *FilterBuilder {
 }
 
 func (fb *FilterBuilder) Not(column, operator string, value any) *FilterBuilder {
+	if value == nil {
+		fb.appendParam(column, fmt.Sprintf("not.%s.null", operator))
+		return fb
+	}
 	fb.appendParam(column, fmt.Sprintf("not.%s.%v", operator, value))
 	return fb
 }
@@ -259,6 +274,10 @@ func (fb *FilterBuilder) Or(filters string, opts ...OrOptions) *FilterBuilder {
 }
 
 func (fb *FilterBuilder) Filter(column, operator string, value any) *FilterBuilder {
+	if value == nil {
+		fb.appendParam(column, fmt.Sprintf("%s.null", operator))
+		return fb
+	}
 	fb.appendParam(column, fmt.Sprintf("%s.%v", operator, value))
 	return fb
 }
@@ -370,11 +389,7 @@ func (fb *FilterBuilder) Single() *FilterBuilder {
 }
 
 func (fb *FilterBuilder) MaybeSingle() *FilterBuilder {
-	if fb.method == http.MethodGet {
-		fb.headers.Set("Accept", "application/json")
-	} else {
-		fb.headers.Set("Accept", "application/vnd.pgrst.object+json")
-	}
+	fb.headers.Set("Accept", "application/json")
 	fb.isMaybeSingle = true
 	return fb
 }
@@ -494,12 +509,7 @@ func (fb *FilterBuilder) ExecuteRaw(ctx context.Context) (*Response, error) {
 	}
 
 	rawURL := fb.url.String()
-	if fb.urlLengthLimit > 0 && len(rawURL) > fb.urlLengthLimit {
-		return nil, &PostgrestError{
-			Message: fmt.Sprintf("request URL length %d exceeds limit %d", len(rawURL), fb.urlLengthLimit),
-			Hint:    "Consider using views or an RPC function for large filter lists.",
-		}
-	}
+	urlTooLong := fb.urlLengthLimit > 0 && len(rawURL) > fb.urlLengthLimit
 
 	headers := fb.headers.Clone()
 	if fb.schema != "" {
@@ -535,7 +545,11 @@ func (fb *FilterBuilder) ExecuteRaw(ctx context.Context) (*Response, error) {
 
 	resp, err := doWithRetry(ctx, fb.httpClient, fb.method, rawURL, headers, bodyBytes, fb.retry, fb.retryBaseDelay)
 	if err != nil {
-		return nil, &PostgrestError{Message: err.Error()}
+		pgErr := &PostgrestError{Message: err.Error()}
+		if urlTooLong {
+			pgErr.Hint = fmt.Sprintf("Request URL length (%d) exceeds configured limit (%d); consider using views or an RPC function for large filter lists.", len(rawURL), fb.urlLengthLimit)
+		}
+		return nil, pgErr
 	}
 	defer resp.Body.Close()
 
@@ -555,15 +569,18 @@ func (fb *FilterBuilder) ExecuteRaw(ctx context.Context) (*Response, error) {
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		pgErr := decodePostgrestError(raw, resp.StatusCode, resp.Status)
+		if urlTooLong && pgErr.Hint == "" {
+			pgErr.Hint = fmt.Sprintf("Request URL length (%d) exceeds configured limit (%d); consider using views or an RPC function for large filter lists.", len(rawURL), fb.urlLengthLimit)
+		}
 		// MaybeSingle treats PostgREST's 0-row PGRST116 (406) as empty success.
-		if fb.isMaybeSingle && strings.Contains(pgErr.Details, "Results contain 0 rows") {
+		if fb.isMaybeSingle && (strings.Contains(pgErr.Details, "Results contain 0 rows") || strings.Contains(pgErr.Details, "The result contains 0 rows")) {
 			pgResp.Data = nil
 			return pgResp, nil
 		}
 		return pgResp, pgErr
 	}
 
-	if fb.isMaybeSingle && fb.method == http.MethodGet {
+	if fb.isMaybeSingle {
 		var arr []json.RawMessage
 		if err := json.Unmarshal(raw, &arr); err == nil {
 			if len(arr) == 0 {

@@ -16,8 +16,10 @@ type PresenceDiffEvent struct {
 
 // RealtimePresence tracks Phoenix Presence state and diffs for a channel.
 type RealtimePresence struct {
-	mu    sync.RWMutex
-	state PresenceState
+	mu           sync.RWMutex
+	state        PresenceState
+	synced       bool
+	pendingDiffs []map[string]any
 }
 
 func newRealtimePresence() *RealtimePresence {
@@ -49,38 +51,76 @@ func extractMetas(entry any) []map[string]any {
 	out := make([]map[string]any, 0, len(rawMetas))
 	for _, rm := range rawMetas {
 		if mp, ok := rm.(map[string]any); ok {
-			out = append(out, mp)
+			cp := make(map[string]any, len(mp))
+			for k, v := range mp {
+				cp[k] = v
+			}
+			if ref, hasRef := cp["phx_ref"]; hasRef {
+				cp["presence_ref"] = ref
+			}
+			delete(cp, "phx_ref")
+			delete(cp, "phx_ref_prev")
+			out = append(out, cp)
 		}
 	}
 	return out
 }
 
-// ApplyState replaces the presence state from a `presence_state` server payload
-// and returns join/sync events to dispatch.
+// ApplyState replaces the presence state from a `presence_state` server payload,
+// flushes any buffered early diffs, and returns join/leave/sync events to dispatch.
 func (p *RealtimePresence) ApplyState(payload map[string]any) []PresenceDiffEvent {
 	p.mu.Lock()
+	prev := p.state
 	next := make(PresenceState)
 	var events []PresenceDiffEvent
+
 	for k, v := range payload {
 		metas := extractMetas(v)
 		next[k] = metas
 		events = append(events, PresenceDiffEvent{
 			Event:            "join",
 			Key:              k,
-			CurrentPresences: nil,
+			CurrentPresences: prev[k],
 			NewPresences:     metas,
 		})
 	}
+	for k, oldMetas := range prev {
+		if _, stillPresent := next[k]; !stillPresent {
+			events = append(events, PresenceDiffEvent{
+				Event:            "leave",
+				Key:              k,
+				CurrentPresences: nil,
+				LeftPresences:    oldMetas,
+			})
+		}
+	}
 	p.state = next
-	p.mu.Unlock()
+	p.synced = true
 	events = append(events, PresenceDiffEvent{Event: "sync"})
+
+	pending := p.pendingDiffs
+	p.pendingDiffs = nil
+	for _, diff := range pending {
+		events = append(events, p.applyDiffLocked(diff)...)
+	}
+	p.mu.Unlock()
 	return events
 }
 
 // ApplyDiff merges a `presence_diff` (`joins` and `leaves`) into the presence state
-// and returns join/leave/sync events to dispatch.
+// and returns join/leave/sync events to dispatch. Diffs arriving before the initial
+// `presence_state` are buffered and applied once state syncs.
 func (p *RealtimePresence) ApplyDiff(payload map[string]any) []PresenceDiffEvent {
 	p.mu.Lock()
+	defer p.mu.Unlock()
+	if !p.synced {
+		p.pendingDiffs = append(p.pendingDiffs, payload)
+		return nil
+	}
+	return p.applyDiffLocked(payload)
+}
+
+func (p *RealtimePresence) applyDiffLocked(payload map[string]any) []PresenceDiffEvent {
 	var events []PresenceDiffEvent
 
 	if joins, ok := payload["joins"].(map[string]any); ok {
@@ -104,13 +144,13 @@ func (p *RealtimePresence) ApplyDiff(payload map[string]any) []PresenceDiffEvent
 			cur := p.state[k]
 			leftRefs := make(map[any]struct{}, len(leftMetas))
 			for _, lm := range leftMetas {
-				if ref, ok := lm["phx_ref"]; ok {
+				if ref, ok := lm["presence_ref"]; ok {
 					leftRefs[ref] = struct{}{}
 				}
 			}
 			var remaining []map[string]any
 			for _, cm := range cur {
-				if ref, ok := cm["phx_ref"]; ok {
+				if ref, ok := cm["presence_ref"]; ok {
 					if _, removed := leftRefs[ref]; removed {
 						continue
 					}
@@ -131,7 +171,6 @@ func (p *RealtimePresence) ApplyDiff(payload map[string]any) []PresenceDiffEvent
 		}
 	}
 
-	p.mu.Unlock()
 	events = append(events, PresenceDiffEvent{Event: "sync"})
 	return events
 }

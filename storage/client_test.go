@@ -2,6 +2,7 @@ package storage_test
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"io"
@@ -23,11 +24,18 @@ func TestStorageBucketsLifecycleAndNewHostname(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		switch {
 		case r.URL.Path == "/storage/v1/bucket" && r.Method == http.MethodPost:
+			var body map[string]any
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+				t.Errorf("decode CreateBucket body: %v", err)
+			}
+			if body["versioning_status"] != "ENABLED" {
+				t.Errorf("CreateBucket versioning_status = %v, want ENABLED", body["versioning_status"])
+			}
 			_, _ = w.Write([]byte(`{"name":"avatars"}`))
 		case r.URL.Path == "/storage/v1/bucket" && r.Method == http.MethodGet:
-			_, _ = w.Write([]byte(`[{"id":"avatars","name":"avatars","public":true,"versioning_status":"Enabled"}]`))
+			_, _ = w.Write([]byte(`[{"id":"avatars","name":"avatars","public":true,"versioning_status":"ENABLED"}]`))
 		case r.URL.Path == "/storage/v1/bucket/avatars" && r.Method == http.MethodGet:
-			_, _ = w.Write([]byte(`{"id":"avatars","name":"avatars","public":true,"versioning_status":"Enabled"}`))
+			_, _ = w.Write([]byte(`{"id":"avatars","name":"avatars","public":true,"versioning_status":"ENABLED"}`))
 		case r.URL.Path == "/storage/v1/bucket/avatars" && (r.Method == http.MethodPut || r.Method == http.MethodDelete):
 			_, _ = w.Write([]byte(`{"message":"ok"}`))
 		case r.URL.Path == "/storage/v1/bucket/avatars/empty":
@@ -89,16 +97,33 @@ func TestStorageFileOperations(t *testing.T) {
 	var gotDownloadPath, gotDownloadQuery string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
-		case r.URL.Path == "/storage/v1/object/avatars/a.png" && (r.Method == http.MethodPost || r.Method == http.MethodPut):
+		case r.URL.Path == "/storage/v1/object/avatars/a.png" && r.Method == http.MethodPost:
+			wantMeta := base64.StdEncoding.EncodeToString([]byte(`{"k":"v"}`))
+			if got := r.Header.Get("x-metadata"); got != wantMeta {
+				t.Errorf("Upload x-metadata = %q, want base64 %q", got, wantMeta)
+			}
 			w.Header().Set("Content-Type", "application/json")
 			_, _ = w.Write([]byte(`{"id":"id1","Key":"avatars/a.png"}`))
-		case r.URL.Path == "/storage/v1/object/avatars/a.png" && r.Method == http.MethodHead:
-			w.WriteHeader(http.StatusOK)
+		case r.URL.Path == "/storage/v1/object/avatars/a.png" && r.Method == http.MethodPut:
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"id":"id1","Key":"avatars/a.png"}`))
 		case r.URL.Path == "/storage/v1/render/image/authenticated/avatars/a.png":
 			gotDownloadPath = r.URL.Path
 			gotDownloadQuery = r.URL.RawQuery
 			_, _ = w.Write([]byte("img-bytes"))
 		case r.URL.Path == "/storage/v1/object/sign/avatars/a.png":
+			var body map[string]any
+			_ = json.NewDecoder(r.Body).Decode(&body)
+			if body["versionId"] != "v1" {
+				t.Errorf("CreateSignedUrl versionId = %v, want v1", body["versionId"])
+			}
+			tr, ok := body["transform"].(map[string]any)
+			if !ok || tr["width"] != float64(200) {
+				t.Errorf("CreateSignedUrl transform = %v", body["transform"])
+			}
+			if _, hasZero := tr["height"]; hasZero {
+				t.Errorf("CreateSignedUrl transform should omit zero height: %v", tr)
+			}
 			_, _ = w.Write([]byte(`{"signedURL":"/object/sign/avatars/a.png?token=tok1"}`))
 		case r.URL.Path == "/storage/v1/object/sign/avatars":
 			_, _ = w.Write([]byte(`[{"signedURL":"/object/sign/avatars/a.png?token=tok1","path":"a.png"}]`))
@@ -111,15 +136,49 @@ func TestStorageFileOperations(t *testing.T) {
 		case r.URL.Path == "/storage/v1/object/move":
 			_, _ = w.Write([]byte(`{"message":"moved"}`))
 		case r.URL.Path == "/storage/v1/object/avatars" && r.Method == http.MethodDelete:
+			var body map[string]any
+			_ = json.NewDecoder(r.Body).Decode(&body)
+			if prefixes, ok := body["prefixes"].([]any); ok && len(prefixes) > 0 {
+				if entry, isObj := prefixes[0].(map[string]any); isObj {
+					if entry["path"] != "a.png" || entry["versionId"] != "v1" {
+						t.Errorf("RemoveVersions entry = %v, want path+versionId", entry)
+					}
+					if _, hasName := entry["name"]; hasName {
+						t.Errorf("RemoveVersions must not send 'name': %v", entry)
+					}
+				}
+			}
 			_, _ = w.Write([]byte(`[{"name":"a.png"}]`))
 		case r.URL.Path == "/storage/v1/object/list/avatars":
 			_, _ = w.Write([]byte(`[{"name":"a.png"}]`))
 		case r.URL.Path == "/storage/v1/object/list-v2/avatars":
+			var body map[string]any
+			_ = json.NewDecoder(r.Body).Decode(&body)
+			if body["noncurrentVersions"] != "include" || body["deleteMarkers"] != "exclude" || body["exactMatch"] != true {
+				t.Errorf("ListV2 body = %v", body)
+			}
+			if sb, ok := body["sortBy"].(map[string]any); !ok || sb["column"] != "name" || sb["order"] != "desc" {
+				t.Errorf("ListV2 sortBy = %v", body["sortBy"])
+			}
 			_, _ = w.Write([]byte(`{"hasNext":false,"objects":[{"name":"a.png","version":"v1"}]}`))
 		case r.URL.Path == "/storage/v1/object/info/avatars/a.png":
 			_, _ = w.Write([]byte(`{"name":"a.png","version":"v1","size":9}`))
-		case r.URL.Path == "/storage/v1/object/purge/avatars/a.png" || r.URL.Path == "/storage/v1/bucket/avatars/purge":
-			w.WriteHeader(http.StatusOK)
+		case r.URL.Path == "/storage/v1/object/info/avatars/missing.png":
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte(`{"statusCode":"404","code":"NoSuchKey","message":"Object not found"}`))
+		case r.URL.Path == "/storage/v1/object/info/avatars/invalid-jwt.png":
+			w.WriteHeader(http.StatusBadRequest)
+			_, _ = w.Write([]byte(`{"statusCode":"400","code":"InvalidJWT","message":"Invalid JWT"}`))
+		case r.URL.Path == "/storage/v1/cdn/avatars/a.png" && r.Method == http.MethodDelete:
+			if r.URL.RawQuery != "" {
+				t.Errorf("PurgeCache unexpected query = %q", r.URL.RawQuery)
+			}
+			_, _ = w.Write([]byte(`{"message":"Successfully purged"}`))
+		case r.URL.Path == "/storage/v1/cdn/avatars" && r.Method == http.MethodDelete:
+			if r.URL.Query().Get("transformations") != "true" {
+				t.Errorf("PurgeBucketCache query = %q, want transformations=true", r.URL.RawQuery)
+			}
+			_, _ = w.Write([]byte(`{"message":"Successfully purged bucket"}`))
 		default:
 			w.WriteHeader(http.StatusNotFound)
 		}
@@ -155,10 +214,15 @@ func TestStorageFileOperations(t *testing.T) {
 		t.Fatalf("stream = %q", string(streamBytes))
 	}
 
-	if su, err := f.CreateSignedUrl(ctx, "a.png", 60, storage.SignedUrlOptions{Download: "avatar.png"}); err != nil || !strings.Contains(su, "download=avatar.png") {
+	if su, err := f.CreateSignedUrl(ctx, "a.png", 60, storage.SignedUrlOptions{
+		Download:   "avatar.png",
+		CacheNonce: "c1",
+		VersionID:  "v1",
+		Transform:  &storage.TransformOptions{Width: 200},
+	}); err != nil || !strings.Contains(su, "download=avatar.png") || !strings.Contains(su, "cacheNonce=c1") {
 		t.Fatalf("CreateSignedUrl = %q, %v", su, err)
 	}
-	if sus, err := f.CreateSignedUrls(ctx, []string{"a.png"}, 60); err != nil || len(sus) != 1 {
+	if sus, err := f.CreateSignedUrls(ctx, []string{"a.png"}, 60, storage.SignedUrlOptions{Download: "true", CacheNonce: "c2"}); err != nil || len(sus) != 1 || !strings.Contains(sus[0].SignedURL, "download=") || !strings.Contains(sus[0].SignedURL, "cacheNonce=c2") {
 		t.Fatalf("CreateSignedUrls = %+v, %v", sus, err)
 	}
 	up, err := f.CreateSignedUploadUrl(ctx, "a.png", true)
@@ -168,8 +232,8 @@ func TestStorageFileOperations(t *testing.T) {
 	if _, err := f.UploadToSignedUrl(ctx, "a.png", up.Token, strings.NewReader("xyz")); err != nil {
 		t.Fatal(err)
 	}
-	pub := f.GetPublicUrl("a.png", storage.PublicUrlOptions{Nonce: "n1", Transform: &storage.TransformOptions{Width: 50}})
-	if !strings.Contains(pub, "/render/image/public/avatars/a.png") || !strings.Contains(pub, "nonce=n1") {
+	pub := f.GetPublicUrl("a.png", storage.PublicUrlOptions{CacheNonce: "n1", VersionID: "v1", Transform: &storage.TransformOptions{Width: 50}})
+	if !strings.Contains(pub, "/render/image/public/avatars/a.png") || !strings.Contains(pub, "cacheNonce=n1") || !strings.Contains(pub, "versionId=v1") {
 		t.Fatalf("GetPublicUrl = %q", pub)
 	}
 	if _, err := f.Copy(ctx, "a.png", "b.png", storage.CopyMoveOptions{DestinationBucket: "dest", SourceVersionID: "v1"}); err != nil {
@@ -181,26 +245,37 @@ func TestStorageFileOperations(t *testing.T) {
 	if _, err := f.Remove(ctx, []string{"a.png"}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := f.RemoveVersions(ctx, []storage.DeleteObjectEntry{{Name: "a.png", VersionID: "v1"}}); err != nil {
+	if _, err := f.RemoveVersions(ctx, []storage.DeleteObjectEntry{{Path: "a.png", VersionID: "v1"}}); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := f.List(ctx, ""); err != nil {
 		t.Fatal(err)
 	}
-	if lv2, err := f.ListV2(ctx, storage.SearchV2Options{NoncurrentVersions: true, DeleteMarkers: true}); err != nil || len(lv2.Objects) != 1 {
+	if lv2, err := f.ListV2(ctx, storage.SearchV2Options{
+		NoncurrentVersions: storage.VersionInclude,
+		DeleteMarkers:      storage.VersionExclude,
+		ExactMatch:         true,
+		SortBy:             &storage.SortBy{Column: "name", Order: "desc"},
+	}); err != nil || len(lv2.Objects) != 1 {
 		t.Fatalf("ListV2 = %+v, %v", lv2, err)
 	}
 	if exists, err := f.Exists(ctx, "a.png"); err != nil || !exists {
-		t.Fatalf("Exists = %v, %v", exists, err)
+		t.Fatalf("Exists(a.png) = %v, %v", exists, err)
+	}
+	if exists, err := f.Exists(ctx, "missing.png"); err != nil || exists {
+		t.Fatalf("Exists(missing.png) = %v, %v", exists, err)
+	}
+	if exists, err := f.Exists(ctx, "invalid-jwt.png"); err == nil || exists {
+		t.Fatalf("Exists(invalid-jwt.png) should propagate InvalidJWT error, got %v, %v", exists, err)
 	}
 	if info, err := f.Info(ctx, "a.png", storage.InfoOptions{VersionID: "v1"}); err != nil || info.Version != "v1" {
 		t.Fatalf("Info = %+v, %v", info, err)
 	}
-	if err := f.PurgeCache(ctx, "a.png"); err != nil {
-		t.Fatal(err)
+	if pr, err := f.PurgeCache(ctx, "a.png"); err != nil || pr.Message != "Successfully purged" {
+		t.Fatalf("PurgeCache = %+v, %v", pr, err)
 	}
-	if err := f.PurgeBucketCache(ctx, storage.PurgeCacheOptions{Transformations: true}); err != nil {
-		t.Fatal(err)
+	if pr, err := f.PurgeBucketCache(ctx, storage.PurgeCacheOptions{Transformations: true}); err != nil || pr.Message != "Successfully purged bucket" {
+		t.Fatalf("PurgeBucketCache = %+v, %v", pr, err)
 	}
 }
 

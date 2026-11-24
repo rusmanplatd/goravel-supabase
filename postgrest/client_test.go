@@ -186,8 +186,13 @@ func TestPostgrestAll31FilterOperators(t *testing.T) {
 		TextSearch("y", "fat cat", postgrest.TextSearchOptions{Type: "websearch", Config: "english"}).
 		Match(map[string]any{"z": "ok"}).
 		Not("aa", "eq", "bad").
+		Not("aa_nil", "is", nil).
 		Or("a.eq.1,b.eq.2").
 		Filter("ab", "gt", 10).
+		Filter("ab_nil", "is", nil).
+		Contains("int_arr", []int{1, 2, 3}).
+		ContainedBy("int64_arr", []int64{4, 5}).
+		Overlaps("f64_arr", []float64{1.5, 2.5}).
 		RegexMatch("ac", "^foo").
 		RegexIMatch("ad", "bar$")
 
@@ -223,11 +228,16 @@ func TestPostgrestAll31FilterOperators(t *testing.T) {
 		"x":  "ov.{a,b}",
 		"y":  "wfts(english).fat cat",
 		"z":  "eq.ok",
-		"aa": "not.eq.bad",
-		"or": "(a.eq.1,b.eq.2)",
-		"ab": "gt.10",
-		"ac": "match.^foo",
-		"ad": "imatch.bar$",
+		"aa":        "not.eq.bad",
+		"aa_nil":    "not.is.null",
+		"or":        "(a.eq.1,b.eq.2)",
+		"ab":        "gt.10",
+		"ab_nil":    "is.null",
+		"int_arr":   "cs.{1,2,3}",
+		"int64_arr": "cd.{4,5}",
+		"f64_arr":   "ov.{1.5,2.5}",
+		"ac":        "match.^foo",
+		"ad":        "imatch.bar$",
 	}
 	for k, want := range expected {
 		if got := q.Get(k); got != want {
@@ -251,6 +261,13 @@ func TestPostgrestModifiersAndCardinality(t *testing.T) {
 		case "/rest/v1/single_err":
 			w.WriteHeader(http.StatusNotAcceptable)
 			_, _ = w.Write([]byte(`{"code":"PGRST116","message":"JSON object requested","details":"Results contain 0 rows"}`))
+		case "/rest/v1/single_v12_err":
+			w.WriteHeader(http.StatusNotAcceptable)
+			_, _ = w.Write([]byte(`{"code":"PGRST116","message":"JSON object requested","details":"The result contains 0 rows"}`))
+		case "/rest/v1/one_row":
+			_, _ = w.Write([]byte(`[{"id":7}]`))
+		case "/rest/v1/rpc/nested_head":
+			_, _ = w.Write([]byte(``))
 		default:
 			_, _ = w.Write([]byte(`{"id":1}`))
 		}
@@ -273,6 +290,44 @@ func TestPostgrestModifiersAndCardinality(t *testing.T) {
 	var pgErr *postgrest.PostgrestError
 	if !errors.As(err, &pgErr) || pgErr.Code != "PGRST116" {
 		t.Fatalf("expected PGRST116 error, got %v", err)
+	}
+
+	// MaybeSingle on POST (non-GET) must NOT send Accept: application/vnd.pgrst.object+json and must unwrap 0/1/>1 client-side
+	resp, err = c.From("one_row").Insert(map[string]any{"x": 1}).Select("*").MaybeSingle().ExecuteRaw(context.Background())
+	if err != nil || string(resp.Data) != `{"id":7}` {
+		t.Fatalf("POST MaybeSingle 1-row = %q, %v", string(resp.Data), err)
+	}
+	if gotHeaders.Get("Accept") == "application/vnd.pgrst.object+json" {
+		t.Fatalf("POST MaybeSingle must not send object+json Accept header")
+	}
+	resp, err = c.From("empty").Insert(map[string]any{"x": 1}).Select("*").MaybeSingle().ExecuteRaw(context.Background())
+	if err != nil || len(resp.Data) != 0 {
+		t.Fatalf("POST MaybeSingle 0-row = %q, %v", string(resp.Data), err)
+	}
+	_, err = c.From("multi").Insert(map[string]any{"x": 1}).Select("*").MaybeSingle().ExecuteRaw(context.Background())
+	if !errors.As(err, &pgErr) || pgErr.Code != "PGRST116" {
+		t.Fatalf("POST MaybeSingle >1-row expected PGRST116, got %v", err)
+	}
+	// MaybeSingle recognizes PostgREST v12+ "The result contains 0 rows"
+	resp, err = c.From("single_v12_err").Select("*").MaybeSingle().ExecuteRaw(context.Background())
+	if err != nil || len(resp.Data) != 0 {
+		t.Fatalf("MaybeSingle v12 0-row = %q, %v", string(resp.Data), err)
+	}
+	// RPC HEAD with nested object falls back to POST + Prefer: count=exact,return=minimal
+	_, err = c.RPC("nested_head", map[string]any{"filter": map[string]any{"a": 1}}, postgrest.RPCOptions{
+		Head:  true,
+		Count: postgrest.CountExact,
+	}).ExecuteRaw(context.Background())
+	if err != nil {
+		t.Fatalf("RPC HEAD nested object error: %v", err)
+	}
+	if !strings.Contains(strings.Join(gotHeaders.Values("Prefer"), ","), "return=minimal") || !strings.Contains(strings.Join(gotHeaders.Values("Prefer"), ","), "count=exact") {
+		t.Fatalf("RPC HEAD nested object Prefer = %v", gotHeaders.Values("Prefer"))
+	}
+	// RPC GET with typed []int slice formats as Postgres array {1,2}
+	rpcURL := c.RPC("by_ids", map[string]any{"ids": []int{1, 2}}, postgrest.RPCOptions{Get: true}).URL()
+	if u, _ := url.Parse(rpcURL); u.Query().Get("ids") != "{1,2}" {
+		t.Fatalf("RPC GET typed slice query = %q, want {1,2}", u.Query().Get("ids"))
 	}
 
 	// Single with 0 rows -> PostgrestError
@@ -384,12 +439,17 @@ func TestPostgrestRetryAndURLLengthLimit(t *testing.T) {
 		t.Fatalf("POST attempted %d times, want 1", attempts.Load())
 	}
 
-	// URLLengthLimit guard
+	// URLLengthLimit does NOT hard-block when server accepts the long URL
 	longVal := strings.Repeat("a", 200)
-	_, err = c.From("items").Select("*").Eq("name", longVal).ExecuteRaw(context.Background())
+	longResp, err := c.From("items").Select("*").Eq("name", longVal).ExecuteRaw(context.Background())
+	if err != nil || longResp.Status != 200 {
+		t.Fatalf("expected long URL to succeed when server accepts it, got resp=%+v err=%v", longResp, err)
+	}
+	// URLLengthLimit enriches error Hint when server rejects or transport fails
+	_, err = c.From("items").Insert(map[string]any{"x": 1}).Eq("name", longVal).ExecuteRaw(context.Background())
 	var pgErr *postgrest.PostgrestError
-	if !errors.As(err, &pgErr) || !strings.Contains(pgErr.Message, "exceeds limit") {
-		t.Fatalf("expected URL length limit error, got %v", err)
+	if !errors.As(err, &pgErr) || !strings.Contains(pgErr.Hint, "URL length") {
+		t.Fatalf("expected URL length hint on failed long-URL request, got %+v", err)
 	}
 
 	// Ensure JSON decoding works on valid payload

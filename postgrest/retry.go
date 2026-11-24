@@ -10,9 +10,29 @@ import (
 	"time"
 )
 
-const defaultMaxRetries = 3
+const (
+	defaultMaxRetries = 3
+	maxRetryDelay     = 30 * time.Second
+)
 
 var defaultRetryBaseDelay = time.Second
+
+func computeBackoffDelay(baseDelay time.Duration, attempt int) time.Duration {
+	if baseDelay >= maxRetryDelay {
+		return maxRetryDelay
+	}
+	delay := baseDelay
+	for i := 0; i < attempt; i++ {
+		if delay >= maxRetryDelay/2 {
+			return maxRetryDelay
+		}
+		delay *= 2
+	}
+	if delay > maxRetryDelay {
+		return maxRetryDelay
+	}
+	return delay
+}
 
 func isIdempotentMethod(method string) bool {
 	return method == http.MethodGet || method == http.MethodHead || method == http.MethodOptions
@@ -84,7 +104,7 @@ func doWithRetry(
 			if attempt+1 >= maxAttempts {
 				return nil, err
 			}
-			delay := baseDelay << attempt
+			delay := computeBackoffDelay(baseDelay, attempt)
 			if !sleepWithContext(ctx, delay) {
 				return nil, ctx.Err()
 			}
@@ -100,7 +120,7 @@ func doWithRetry(
 		resp.Body.Close()
 		lastResp = resp
 
-		delay := baseDelay << attempt
+		delay := computeBackoffDelay(baseDelay, attempt)
 		if ra, ok := parseRetryAfter(resp.Header.Get("Retry-After")); ok {
 			delay = ra
 		}

@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/rusmanplatd/goravel-supabase/internal/transport"
 )
@@ -87,12 +88,16 @@ func New(baseURL string, opts ...Option) *Client {
 	return c
 }
 
-// SetAuth updates the Authorization Bearer token on the client.
+// SetAuth updates the Authorization Bearer token on the client case-insensitively.
 func (c *Client) SetAuth(token string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	for k := range c.headers {
+		if strings.EqualFold(k, "Authorization") {
+			delete(c.headers, k)
+		}
+	}
 	if token == "" {
-		delete(c.headers, "Authorization")
 		return
 	}
 	c.headers["Authorization"] = "Bearer " + token
@@ -128,10 +133,20 @@ func (c *Client) Invoke(ctx context.Context, functionName string, opts ...Invoke
 		ctx = context.Background()
 	}
 
-	var cancel context.CancelFunc
+	var (
+		cancelCause  context.CancelCauseFunc
+		timeoutTimer *time.Timer
+	)
 	if opt.Timeout > 0 {
-		ctx, cancel = context.WithTimeout(ctx, opt.Timeout)
-		defer cancel()
+		ctx, cancelCause = context.WithCancelCause(ctx)
+		timeoutTimer = time.AfterFunc(opt.Timeout, func() {
+			cancelCause(context.DeadlineExceeded)
+		})
+	}
+	stopTimeout := func() {
+		if timeoutTimer != nil {
+			timeoutTimer.Stop()
+		}
 	}
 
 	c.mu.RLock()
@@ -231,13 +246,23 @@ func (c *Client) Invoke(ctx context.Context, functionName string, opts ...Invoke
 	setHeadersCI(req.Header, opt.Headers)
 
 	resp, err := hc.Do(req)
+	stopTimeout()
 	if err != nil {
+		if cancelCause != nil {
+			if cause := context.Cause(ctx); cause != nil {
+				err = cause
+			}
+			cancelCause(nil)
+		}
 		return nil, NewFunctionsFetchError(err)
 	}
 
 	if strings.EqualFold(resp.Header.Get("x-relay-error"), "true") {
 		raw, _ := io.ReadAll(resp.Body)
 		resp.Body.Close()
+		if cancelCause != nil {
+			cancelCause(nil)
+		}
 		resp.Body = io.NopCloser(bytes.NewReader(raw))
 		return nil, NewFunctionsRelayError(resp, raw)
 	}
@@ -245,6 +270,9 @@ func (c *Client) Invoke(ctx context.Context, functionName string, opts ...Invoke
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		raw, _ := io.ReadAll(resp.Body)
 		resp.Body.Close()
+		if cancelCause != nil {
+			cancelCause(nil)
+		}
 		resp.Body = io.NopCloser(bytes.NewReader(raw))
 		return nil, NewFunctionsHttpError(resp, raw)
 	}
@@ -260,13 +288,17 @@ func (c *Client) Invoke(ctx context.Context, functionName string, opts ...Invoke
 		mediaType = strings.ToLower(mediaType)
 	}
 
-	// text/event-stream must NOT be buffered; return live stream directly.
+	// text/event-stream must NOT be buffered or cancelled on Invoke return; return live stream directly.
 	if mediaType == "text/event-stream" {
 		return &InvokeResponse{
 			Data:     resp.Body,
 			Stream:   resp.Body,
 			Response: resp,
 		}, nil
+	}
+
+	if cancelCause != nil {
+		defer cancelCause(nil)
 	}
 
 	raw, err := io.ReadAll(resp.Body)

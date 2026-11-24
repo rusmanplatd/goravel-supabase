@@ -107,9 +107,8 @@ type PasskeyRegistrationOptionsResponse struct {
 }
 
 type PasskeyRegistrationVerifyParams struct {
-	ChallengeID        string         `json:"challenge_id"`
-	FriendlyName       string         `json:"friendly_name,omitempty"`
-	CredentialResponse map[string]any `json:"credential_response"`
+	ChallengeID string         `json:"challenge_id"`
+	Credential  map[string]any `json:"credential"`
 }
 
 type PasskeyAuthenticationOptionsResponse struct {
@@ -118,8 +117,8 @@ type PasskeyAuthenticationOptionsResponse struct {
 }
 
 type PasskeyAuthenticationVerifyParams struct {
-	ChallengeID        string         `json:"challenge_id"`
-	CredentialResponse map[string]any `json:"credential_response"`
+	ChallengeID string         `json:"challenge_id"`
+	Credential  map[string]any `json:"credential"`
 }
 
 func (p *PasskeyClient) RegistrationOptions(ctx context.Context) (*PasskeyRegistrationOptionsResponse, error) {
@@ -167,13 +166,11 @@ func (p *PasskeyClient) List(ctx context.Context) ([]Passkey, error) {
 	if err != nil {
 		return nil, err
 	}
-	var resp struct {
-		Passkeys []Passkey `json:"passkeys"`
-	}
-	if err := p.client.doJSON(ctx, http.MethodGet, "/passkeys", nil, token, &resp); err != nil {
+	var passkeys []Passkey
+	if err := p.client.doJSON(ctx, http.MethodGet, "/passkeys", nil, token, &passkeys); err != nil {
 		return nil, err
 	}
-	return resp.Passkeys, nil
+	return passkeys, nil
 }
 
 func (p *PasskeyClient) Update(ctx context.Context, passkeyID, friendlyName string) (*Passkey, error) {
@@ -213,9 +210,8 @@ func (p *PasskeyClient) RegisterPasskey(ctx context.Context, friendlyName string
 		return nil, err
 	}
 	return p.RegistrationVerify(ctx, PasskeyRegistrationVerifyParams{
-		ChallengeID:        opts.ChallengeID,
-		FriendlyName:       friendlyName,
-		CredentialResponse: cred,
+		ChallengeID: opts.ChallengeID,
+		Credential:  cred,
 	})
 }
 
@@ -234,7 +230,7 @@ func (p *PasskeyClient) SignInWithPasskey(ctx context.Context, ceremony func(ctx
 		return nil, err
 	}
 	return p.AuthenticationVerify(ctx, PasskeyAuthenticationVerifyParams{
-		ChallengeID:        opts.ChallengeID,
-		CredentialResponse: cred,
+		ChallengeID: opts.ChallengeID,
+		Credential:  cred,
 	})
 }

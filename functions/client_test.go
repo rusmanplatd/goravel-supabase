@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"mime/multipart"
@@ -67,17 +68,29 @@ func TestFunctionsInvokeRegionAndAuth(t *testing.T) {
 		t.Fatalf("decoded data = %#v", res.Data)
 	}
 
-	// SetAuth should attach Bearer token.
-	c.SetAuth("user-jwt")
-	_, err = c.Invoke(context.Background(), "hello", functions.InvokeOptions{Method: http.MethodDelete})
+	// SetAuth should attach Bearer token and handle lowercase authorization case-insensitively.
+	c2 := functions.New(srv.URL+"/functions/v1",
+		functions.WithHTTPClient(srv.Client()),
+		functions.WithHeaders(map[string]string{"authorization": "Bearer old"}),
+	)
+	c2.SetAuth("user-jwt")
+	_, err = c2.Invoke(context.Background(), "hello", functions.InvokeOptions{Method: http.MethodDelete})
 	if err != nil {
 		t.Fatalf("Invoke after SetAuth error: %v", err)
 	}
 	if gotMethod != http.MethodDelete {
 		t.Fatalf("method = %q, want DELETE", gotMethod)
 	}
-	if gotHeaders.Get("Authorization") != "Bearer user-jwt" {
-		t.Fatalf("Authorization = %q, want Bearer user-jwt", gotHeaders.Get("Authorization"))
+	if vals := gotHeaders.Values("Authorization"); len(vals) != 1 || vals[0] != "Bearer user-jwt" {
+		t.Fatalf("Authorization = %v, want [Bearer user-jwt]", vals)
+	}
+	c2.SetAuth("")
+	_, err = c2.Invoke(context.Background(), "hello")
+	if err != nil {
+		t.Fatalf("Invoke after SetAuth('') error: %v", err)
+	}
+	if gotHeaders.Get("Authorization") != "" {
+		t.Fatalf("expected cleared Authorization after SetAuth(''), got %q", gotHeaders.Get("Authorization"))
 	}
 }
 
@@ -110,8 +123,8 @@ func TestFunctionsResponseTypesAndSSE(t *testing.T) {
 
 	c := functions.New(srv.URL+"/functions/v1", functions.WithHTTPClient(srv.Client()))
 
-	// SSE unbuffered stream
-	res, err := c.Invoke(context.Background(), "sse")
+	// SSE unbuffered stream remains readable when InvokeOptions.Timeout is set
+	res, err := c.Invoke(context.Background(), "sse", functions.InvokeOptions{Timeout: 500 * time.Millisecond})
 	if err != nil {
 		t.Fatalf("sse error: %v", err)
 	}
@@ -124,6 +137,9 @@ func TestFunctionsResponseTypesAndSSE(t *testing.T) {
 		if l := scanner.Text(); l != "" {
 			lines = append(lines, l)
 		}
+	}
+	if err := scanner.Err(); err != nil {
+		t.Fatalf("SSE scanner error (timeout must not cancel live stream): %v", err)
 	}
 	res.Stream.Close()
 	if len(lines) != 2 || lines[0] != "data: first" || lines[1] != "data: second" {
@@ -184,14 +200,21 @@ func TestFunctionsErrorsAndTimeout(t *testing.T) {
 
 	_, err := c.Invoke(context.Background(), "relay")
 	var relayErr *functions.FunctionsRelayError
-	if !errors.As(err, &relayErr) {
-		t.Fatalf("expected FunctionsRelayError, got %T (%v)", err, err)
+	var baseErr *functions.FunctionsError
+	if !errors.As(err, &relayErr) || !errors.As(err, &baseErr) {
+		t.Fatalf("expected FunctionsRelayError & FunctionsError, got %T (%v)", err, err)
+	}
+	if _, jerr := json.Marshal(relayErr); jerr != nil {
+		t.Fatalf("json.Marshal(relayErr) failed: %v", jerr)
 	}
 
 	_, err = c.Invoke(context.Background(), "http500")
 	var httpErr *functions.FunctionsHttpError
-	if !errors.As(err, &httpErr) {
-		t.Fatalf("expected FunctionsHttpError, got %T (%v)", err, err)
+	if !errors.As(err, &httpErr) || !errors.As(err, &baseErr) {
+		t.Fatalf("expected FunctionsHttpError & FunctionsError, got %T (%v)", err, err)
+	}
+	if _, jerr := json.Marshal(httpErr); jerr != nil {
+		t.Fatalf("json.Marshal(httpErr) failed: %v", jerr)
 	}
 	if string(httpErr.Body) != `{"error":"boom"}` {
 		t.Fatalf("httpErr.Body = %q", string(httpErr.Body))
@@ -203,7 +226,10 @@ func TestFunctionsErrorsAndTimeout(t *testing.T) {
 
 	_, err = c.Invoke(context.Background(), "slow", functions.InvokeOptions{Timeout: 40 * time.Millisecond})
 	var fetchErr *functions.FunctionsFetchError
-	if !errors.As(err, &fetchErr) {
-		t.Fatalf("expected FunctionsFetchError on timeout, got %T (%v)", err, err)
+	if !errors.As(err, &fetchErr) || !errors.As(err, &baseErr) || !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("expected FunctionsFetchError wrapping DeadlineExceeded, got %T (%v)", err, err)
+	}
+	if _, jerr := json.Marshal(fetchErr); jerr != nil {
+		t.Fatalf("json.Marshal(fetchErr) failed: %v", jerr)
 	}
 }

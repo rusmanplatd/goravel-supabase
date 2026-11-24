@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -112,12 +113,19 @@ func (a *AdminClient) UpdateUserById(ctx context.Context, uid string, params Adm
 	return &user, nil
 }
 
-func (a *AdminClient) DeleteUser(ctx context.Context, uid string, shouldSoftDelete ...bool) error {
+func (a *AdminClient) DeleteUser(ctx context.Context, uid string, shouldSoftDelete ...bool) (*User, error) {
+	user, err := a.GetUserById(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
 	body := map[string]any{}
 	if len(shouldSoftDelete) > 0 && shouldSoftDelete[0] {
 		body["should_soft_delete"] = true
 	}
-	return a.client.doJSON(ctx, http.MethodDelete, "/admin/users/"+url.PathEscape(uid), body, "", nil)
+	if err := a.client.doJSON(ctx, http.MethodDelete, "/admin/users/"+url.PathEscape(uid), body, "", nil); err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 func (a *AdminClient) InviteUserByEmail(ctx context.Context, email string, data map[string]any, redirectTo ...string) (*User, error) {
@@ -137,9 +145,21 @@ func (a *AdminClient) InviteUserByEmail(ctx context.Context, email string, data 
 }
 
 func (a *AdminClient) GenerateLink(ctx context.Context, params GenerateLinkParams) (*GenerateLinkResponse, error) {
-	var resp GenerateLinkResponse
-	if err := a.client.doJSON(ctx, http.MethodPost, "/admin/generate_link", params, "", &resp); err != nil {
+	var raw json.RawMessage
+	if err := a.client.doJSON(ctx, http.MethodPost, "/admin/generate_link", params, "", &raw); err != nil {
 		return nil, err
+	}
+	var resp GenerateLinkResponse
+	if len(raw) > 0 {
+		if err := json.Unmarshal(raw, &resp); err != nil {
+			return nil, &AuthError{Name: "AuthError", Message: err.Error(), Err: err}
+		}
+		if resp.User == nil {
+			var u User
+			if err := json.Unmarshal(raw, &u); err == nil && (u.ID != "" || u.Email != "" || u.Phone != "") {
+				resp.User = &u
+			}
+		}
 	}
 	return &resp, nil
 }
@@ -243,13 +263,11 @@ type AdminPasskeyClient struct {
 }
 
 func (p *AdminPasskeyClient) ListPasskeys(ctx context.Context, userID string) ([]Passkey, error) {
-	var resp struct {
-		Passkeys []Passkey `json:"passkeys"`
-	}
-	if err := p.client.doJSON(ctx, http.MethodGet, "/admin/users/"+url.PathEscape(userID)+"/passkeys", nil, "", &resp); err != nil {
+	var passkeys []Passkey
+	if err := p.client.doJSON(ctx, http.MethodGet, "/admin/users/"+url.PathEscape(userID)+"/passkeys", nil, "", &passkeys); err != nil {
 		return nil, err
 	}
-	return resp.Passkeys, nil
+	return passkeys, nil
 }
 
 func (p *AdminPasskeyClient) DeletePasskey(ctx context.Context, userID, passkeyID string) error {

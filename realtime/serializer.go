@@ -68,6 +68,40 @@ func (s *Serializer) Encode(msg Message) (bool, []byte, error) {
 	return false, b, err
 }
 
+// EncodeV1 serializes msg as a Phoenix v1.0.0 JSON object frame.
+func (s *Serializer) EncodeV1(msg Message) ([]byte, error) {
+	payload := msg.Payload
+	if payload == nil {
+		payload = map[string]any{}
+	}
+	obj := map[string]any{
+		"topic":   msg.Topic,
+		"event":   msg.Event,
+		"payload": payload,
+		"ref":     nil,
+		"join_ref": nil,
+	}
+	if msg.Ref != "" {
+		obj["ref"] = msg.Ref
+	}
+	if msg.JoinRef != "" {
+		obj["join_ref"] = msg.JoinRef
+	}
+	return json.Marshal(obj)
+}
+
+// DecodeV1 deserializes a Phoenix v1.0.0 JSON object frame.
+func (s *Serializer) DecodeV1(raw []byte) (*Message, error) {
+	var msg Message
+	if err := json.Unmarshal(raw, &msg); err != nil {
+		return nil, err
+	}
+	if msg.Payload == nil {
+		msg.Payload = map[string]any{}
+	}
+	return &msg, nil
+}
+
 func (s *Serializer) encodeUserBroadcastPush(msg Message, userEvent string) ([]byte, error) {
 	joinRefBytes := []byte(msg.JoinRef)
 	refBytes := []byte(msg.Ref)

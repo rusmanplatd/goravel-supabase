@@ -115,6 +115,13 @@ func TestPostgresFilterBuilderAll14Operators(t *testing.T) {
 		{realtime.NewPostgresFilterBuilder().Is("deleted_at", nil).Build(), "deleted_at=is.null"},
 		{realtime.NewPostgresFilterBuilder().IsDistinct("flag", true).Build(), "flag=isdistinct.true"},
 		{realtime.NewPostgresFilterBuilder().Not("status", "eq", "archived").Build(), "status=not.eq.archived"},
+		// Chaining, quoting, In deduplication, Not(in/is)
+		{realtime.NewPostgresFilterBuilder().Eq("a", 1).Lt("b", 2).Build(), "a=eq.1,b=lt.2"},
+		{realtime.NewPostgresFilterBuilder().Eq("name", "a,b").Build(), `name=eq."a,b"`},
+		{realtime.NewPostgresFilterBuilder().Eq("name", " spaced ").Build(), `name=eq." spaced "`},
+		{realtime.NewPostgresFilterBuilder().In("status", []any{"x", "y", "x", "a,b"}).Build(), `status=in.(x,y,"a,b")`},
+		{realtime.NewPostgresFilterBuilder().Not("status", "in", []any{"x", "y", "x"}).Build(), "status=not.in.(x,y)"},
+		{realtime.NewPostgresFilterBuilder().Not("deleted_at", "is", nil).Build(), "deleted_at=not.is.null"},
 	}
 	for _, tc := range cases {
 		if tc.got != tc.want {
@@ -134,12 +141,25 @@ func TestRealtimeEndToEndWebSocketAndHTTPSend(t *testing.T) {
 	)
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/realtime/v1/api/broadcast" {
+		if r.URL.Path == "/realtime/v1/api/broadcast/room1/events/chat" {
+			if r.URL.Query().Get("private") != "true" || r.URL.Query().Get("persist") != "true" {
+				t.Errorf("HTTPSend query = %q, want private=true&persist=true", r.URL.RawQuery)
+			}
 			var body map[string]any
 			_ = json.NewDecoder(r.Body).Decode(&body)
 			mu.Lock()
 			seenHTTPBody = body
 			mu.Unlock()
+			w.WriteHeader(http.StatusAccepted)
+			return
+		}
+		if r.URL.Path == "/realtime/v1/api/broadcast/room1/events/bin" {
+			if r.Header.Get("Content-Type") != "application/octet-stream" {
+				t.Errorf("binary HTTPSend Content-Type = %q", r.Header.Get("Content-Type"))
+			}
+			if r.URL.Query().Get("persist[ttl]") != "60" {
+				t.Errorf("binary HTTPSend persist[ttl] = %q, want 60", r.URL.Query().Get("persist[ttl]"))
+			}
 			w.WriteHeader(http.StatusAccepted)
 			return
 		}
@@ -269,10 +289,21 @@ func TestRealtimeEndToEndWebSocketAndHTTPSend(t *testing.T) {
 		t.Fatalf("HTTP fallback Send error: %v", err)
 	}
 	mu.Lock()
-	if seenHTTPBody == nil {
-		t.Fatal("expected HTTPSend to hit /realtime/v1/api/broadcast")
+	if seenHTTPBody == nil || seenHTTPBody["text"] != "hi via http" {
+		t.Fatalf("expected HTTPSend to hit /realtime/v1/api/broadcast/room1/events/chat, got %+v", seenHTTPBody)
 	}
 	mu.Unlock()
+
+	// Binary HTTPSend with TTL
+	if err := ch.HTTPSend(context.Background(), "bin", []byte{1, 2, 3}, realtime.HTTPSendOptions{PersistTTL: 60}); err != nil {
+		t.Fatalf("binary HTTPSend error: %v", err)
+	}
+	// Public channel must reject persist
+	pubCh := client.Channel("public-room")
+	if err := pubCh.HTTPSend(context.Background(), "ev", map[string]any{"a": 1}, realtime.HTTPSendOptions{Persist: true}); err == nil {
+		t.Fatal("expected error for persist on public channel")
+	}
+	_ = client.RemoveChannel(context.Background(), pubCh)
 
 	// Register two postgres_changes filters + broadcast + presence listeners
 	ch.OnPostgresChanges(realtime.PostgresChangesFilter{
@@ -341,6 +372,12 @@ func TestRealtimeEndToEndWebSocketAndHTTPSend(t *testing.T) {
 	if _, hasU2 := ps["user2"]; !hasU2 {
 		t.Fatalf("expected user2 in presence state, state=%+v", ps)
 	}
+	if ps["user2"][0]["presence_ref"] != "r2" {
+		t.Fatalf("expected presence_ref=r2, got %+v", ps["user2"][0])
+	}
+	if _, hasPhxRef := ps["user2"][0]["phx_ref"]; hasPhxRef {
+		t.Fatalf("expected phx_ref stripped, got %+v", ps["user2"][0])
+	}
 
 	// Send binary v2 broadcast over WS and receive echo
 	if err := ch.Send(context.Background(), realtime.SendPayload{
@@ -393,5 +430,190 @@ func TestRealtimeEndToEndWebSocketAndHTTPSend(t *testing.T) {
 	}
 	if client.ConnectionState() != realtime.StateClosed {
 		t.Fatalf("ConnectionState = %q, want closed", client.ConnectionState())
+	}
+}
+
+type flakyTransport struct {
+	mu       sync.Mutex
+	attempts int
+	failN    int
+	conns    []*fakeConn
+}
+
+type fakeConn struct {
+	readCh chan []byte
+	closed chan struct{}
+	once   sync.Once
+}
+
+func newFakeConn() *fakeConn {
+	return &fakeConn{readCh: make(chan []byte, 8), closed: make(chan struct{})}
+}
+
+func (f *fakeConn) ReadMessage(ctx context.Context) (bool, []byte, error) {
+	select {
+	case <-ctx.Done():
+		return false, nil, ctx.Err()
+	case <-f.closed:
+		return false, nil, context.Canceled
+	case b := <-f.readCh:
+		return false, b, nil
+	}
+}
+
+func (f *fakeConn) WriteMessage(_ context.Context, _ bool, _ []byte) error { return nil }
+func (f *fakeConn) Close(_ int, _ string) error {
+	f.once.Do(func() { close(f.closed) })
+	return nil
+}
+
+func (ft *flakyTransport) Dial(_ context.Context, _ string, _ http.Header) (realtime.Conn, error) {
+	ft.mu.Lock()
+	defer ft.mu.Unlock()
+	ft.attempts++
+	if ft.attempts > 1 && ft.attempts <= 1+ft.failN {
+		return nil, context.DeadlineExceeded
+	}
+	fc := newFakeConn()
+	ft.conns = append(ft.conns, fc)
+	return fc, nil
+}
+
+func TestRealtimeV1FramingReconnectDeferredDisconnectAndPresence(t *testing.T) {
+	// 1. Invalid vsn rejected
+	bad := realtime.New("ws://localhost:1234/realtime/v1", realtime.WithVsn("9.9.9"))
+	if err := bad.Connect(context.Background()); err == nil {
+		t.Fatal("expected error for unsupported vsn")
+	}
+
+	// 2. Phoenix v1.0.0 JSON object framing round-trip
+	var v1GotObj map[string]any
+	v1Srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		c, err := websocket.Accept(w, r, nil)
+		if err != nil {
+			return
+		}
+		defer c.CloseNow()
+		typ, data, err := c.Read(r.Context())
+		if err != nil || typ != websocket.MessageText {
+			return
+		}
+		_ = json.Unmarshal(data, &v1GotObj)
+		reply, _ := json.Marshal(map[string]any{
+			"topic":    v1GotObj["topic"],
+			"event":    "phx_reply",
+			"ref":      v1GotObj["ref"],
+			"join_ref": v1GotObj["join_ref"],
+			"payload":  map[string]any{"status": "ok", "response": map[string]any{}},
+		})
+		_ = c.Write(r.Context(), websocket.MessageText, reply)
+		time.Sleep(100 * time.Millisecond)
+	}))
+	defer v1Srv.Close()
+
+	v1Client := realtime.New("ws"+strings.TrimPrefix(v1Srv.URL, "http")+"/realtime/v1",
+		realtime.WithVsn("1.0.0"),
+		realtime.WithHTTPClient(v1Srv.Client()),
+	)
+	v1Joined := make(chan struct{}, 1)
+	v1Ch := v1Client.Channel("v1room")
+	if err := v1Ch.Subscribe(context.Background(), func(s realtime.SubscribeStatus, _ error) {
+		if s == realtime.SubscribeSubscribed {
+			v1Joined <- struct{}{}
+		}
+	}); err != nil {
+		t.Fatalf("v1 Subscribe error: %v", err)
+	}
+	select {
+	case <-v1Joined:
+	case <-time.After(2 * time.Second):
+		t.Fatal("v1 join timed out")
+	}
+	if v1GotObj["event"] != "phx_join" || v1GotObj["topic"] != "realtime:v1room" {
+		t.Fatalf("v1 wire object = %+v", v1GotObj)
+	}
+	_ = v1Client.Disconnect()
+
+	// 3. Multi-attempt reconnect loop + deferred disconnect on empty channels
+	ft := &flakyTransport{failN: 2}
+	var triesSeen []int
+	var triesMu sync.Mutex
+	rc := realtime.New("ws://fake/realtime/v1",
+		realtime.WithTransport(ft),
+		realtime.WithDeferredDisconnect(40*time.Millisecond),
+		realtime.WithReconnectAfterMs(func(tries int) time.Duration {
+			triesMu.Lock()
+			triesSeen = append(triesSeen, tries)
+			triesMu.Unlock()
+			return 5 * time.Millisecond
+		}),
+	)
+	if err := rc.Connect(context.Background()); err != nil {
+		t.Fatalf("initial Connect: %v", err)
+	}
+	// Drop initial connection to trigger 2 failed retries + 3rd succeeding
+	ft.mu.Lock()
+	firstConn := ft.conns[0]
+	ft.mu.Unlock()
+	_ = firstConn.Close(1006, "drop")
+
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		if rc.ConnectionState() == realtime.StateOpen {
+			ft.mu.Lock()
+			n := len(ft.conns)
+			ft.mu.Unlock()
+			if n == 2 {
+				break
+			}
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	triesMu.Lock()
+	if len(triesSeen) < 3 || triesSeen[0] != 1 || triesSeen[1] != 2 || triesSeen[2] != 3 {
+		t.Fatalf("expected reconnect tries [1 2 3], got %v", triesSeen)
+	}
+	triesMu.Unlock()
+
+	// Deferred disconnect: removing last channel schedules disconnect; adding new channel cancels it
+	ch1 := rc.Channel("c1")
+	_ = rc.RemoveChannel(context.Background(), ch1)
+	time.Sleep(10 * time.Millisecond)
+	ch2 := rc.Channel("c2") // cancels timer
+	time.Sleep(50 * time.Millisecond)
+	if rc.ConnectionState() != realtime.StateOpen {
+		t.Fatalf("expected timer cancelled by new channel, state=%s", rc.ConnectionState())
+	}
+	_ = rc.RemoveChannel(context.Background(), ch2) // now empty -> disconnects after 40ms
+	time.Sleep(80 * time.Millisecond)
+	if rc.ConnectionState() != realtime.StateClosed {
+		t.Fatalf("expected deferred disconnect after last channel removed, state=%s", rc.ConnectionState())
+	}
+
+	// 4. Presence buffers early diff before initial state and emits leaves on re-sync
+	var rp realtime.RealtimePresence
+	if evs := rp.ApplyDiff(map[string]any{
+		"joins": map[string]any{"u2": map[string]any{"metas": []any{map[string]any{"phx_ref": "r2"}}}},
+	}); len(evs) != 0 {
+		t.Fatalf("expected early diff buffered before state, got %+v", evs)
+	}
+	_ = rp.ApplyState(map[string]any{
+		"u1": map[string]any{"metas": []any{map[string]any{"phx_ref": "r1"}}},
+	})
+	st := rp.State()
+	if len(st["u1"]) != 1 || len(st["u2"]) != 1 || st["u1"][0]["presence_ref"] != "r1" || st["u2"][0]["presence_ref"] != "r2" {
+		t.Fatalf("expected buffered u2 + synced u1 with presence_ref, got %+v", st)
+	}
+	resyncEvents := rp.ApplyState(map[string]any{
+		"u2": map[string]any{"metas": []any{map[string]any{"phx_ref": "r2"}}},
+	})
+	foundLeave := false
+	for _, ev := range resyncEvents {
+		if ev.Event == "leave" && ev.Key == "u1" {
+			foundLeave = true
+		}
+	}
+	if !foundLeave {
+		t.Fatalf("expected leave event for u1 on re-sync, got %+v", resyncEvents)
 	}
 }

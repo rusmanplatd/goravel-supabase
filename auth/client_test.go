@@ -76,6 +76,9 @@ func TestConcurrentPKCEAndSignInFlows(t *testing.T) {
 	var mu sync.Mutex
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Header.Get("X-Supabase-Api-Version"); got != auth.DefaultAPIVersion {
+			t.Errorf("%s %s X-Supabase-Api-Version = %q, want %q", r.Method, r.URL.Path, got, auth.DefaultAPIVersion)
+		}
 		w.Header().Set("Content-Type", "application/json")
 		switch {
 		case r.URL.Path == "/auth/v1/token" && r.URL.Query().Get("grant_type") == "pkce":
@@ -90,6 +93,14 @@ func TestConcurrentPKCEAndSignInFlows(t *testing.T) {
 		case r.URL.Path == "/auth/v1/token":
 			_, _ = w.Write([]byte(`{"access_token":"pw-at","refresh_token":"pw-rt","expires_in":3600,"token_type":"bearer","user":{"id":"u3"}}`))
 		case r.URL.Path == "/auth/v1/verify":
+			if got := r.URL.Query().Get("redirect_to"); got != "https://app.example.com/cb" {
+				t.Errorf("VerifyOtp redirect_to query = %q, want https://app.example.com/cb", got)
+			}
+			var body map[string]any
+			_ = json.NewDecoder(r.Body).Decode(&body)
+			if _, hasRedirect := body["redirect_to"]; hasRedirect {
+				t.Errorf("VerifyOtp body must not include redirect_to: %v", body)
+			}
 			_, _ = w.Write([]byte(`{"access_token":"otp-at","refresh_token":"otp-rt","expires_in":3600,"token_type":"bearer","user":{"id":"u4"}}`))
 		case r.URL.Path == "/auth/v1/sso":
 			_, _ = w.Write([]byte(`{"url":"https://idp.example.com/sso"}`))
@@ -137,7 +148,7 @@ func TestConcurrentPKCEAndSignInFlows(t *testing.T) {
 	if err := c.SignInWithOtp(ctx, auth.SignInWithOtpParams{Email: "a@b.com"}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := c.VerifyOtp(ctx, auth.VerifyOtpParams{Email: "a@b.com", Token: "123456", Type: "email"}); err != nil {
+	if _, err := c.VerifyOtp(ctx, auth.VerifyOtpParams{Email: "a@b.com", Token: "123456", Type: "email", RedirectTo: "https://app.example.com/cb"}); err != nil {
 		t.Fatal(err)
 	}
 	if sso, err := c.SignInWithSSO(ctx, auth.SignInWithSSOParams{Domain: "acme.com"}); err != nil || sso.URL == "" {
@@ -236,13 +247,32 @@ func TestSessionJWKSAutoRefreshIdentitiesMFAAndOAuthPasskey(t *testing.T) {
 		case r.URL.Path == "/auth/v1/passkeys/registration/options":
 			_, _ = w.Write([]byte(`{"challenge_id":"rc1","options":{"challenge":"abc"}}`))
 		case r.URL.Path == "/auth/v1/passkeys/registration/verify":
+			var body map[string]any
+			_ = json.NewDecoder(r.Body).Decode(&body)
+			if _, ok := body["credential"]; !ok {
+				t.Errorf("passkey registration verify missing 'credential': %v", body)
+			}
+			if _, bad := body["credential_response"]; bad {
+				t.Errorf("passkey registration verify must not send 'credential_response': %v", body)
+			}
+			if _, bad := body["friendly_name"]; bad {
+				t.Errorf("passkey registration verify must not send 'friendly_name': %v", body)
+			}
 			_, _ = w.Write([]byte(`{"id":"pk1","friendly_name":"MacBook"}`))
 		case r.URL.Path == "/auth/v1/passkeys/authentication/options":
 			_, _ = w.Write([]byte(`{"challenge_id":"ac1","options":{"challenge":"def"}}`))
 		case r.URL.Path == "/auth/v1/passkeys/authentication/verify":
+			var body map[string]any
+			_ = json.NewDecoder(r.Body).Decode(&body)
+			if _, ok := body["credential"]; !ok {
+				t.Errorf("passkey auth verify missing 'credential': %v", body)
+			}
+			if _, bad := body["credential_response"]; bad {
+				t.Errorf("passkey auth verify must not send 'credential_response': %v", body)
+			}
 			_ = json.NewEncoder(w).Encode(map[string]any{"access_token": aal1JWT, "refresh_token": "rt-pk", "expires_in": 3600})
 		case r.URL.Path == "/auth/v1/passkeys" && r.Method == http.MethodGet:
-			_, _ = w.Write([]byte(`{"passkeys":[{"id":"pk1","friendly_name":"MacBook"}]}`))
+			_, _ = w.Write([]byte(`[{"id":"pk1","friendly_name":"MacBook"}]`))
 		case r.URL.Path == "/auth/v1/passkeys/pk1" && r.Method == http.MethodPatch:
 			_, _ = w.Write([]byte(`{"id":"pk1","friendly_name":"Renamed"}`))
 		case r.URL.Path == "/auth/v1/passkeys/pk1" && r.Method == http.MethodDelete:
@@ -360,13 +390,13 @@ func TestSessionJWKSAutoRefreshIdentitiesMFAAndOAuthPasskey(t *testing.T) {
 	if _, err := c.Passkey.RegistrationOptions(ctx); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := c.Passkey.RegistrationVerify(ctx, auth.PasskeyRegistrationVerifyParams{ChallengeID: "rc1"}); err != nil {
+	if _, err := c.Passkey.RegistrationVerify(ctx, auth.PasskeyRegistrationVerifyParams{ChallengeID: "rc1", Credential: map[string]any{"id": "cred1"}}); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := c.Passkey.AuthenticationOptions(ctx); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := c.Passkey.AuthenticationVerify(ctx, auth.PasskeyAuthenticationVerifyParams{ChallengeID: "ac1"}); err != nil {
+	if _, err := c.Passkey.AuthenticationVerify(ctx, auth.PasskeyAuthenticationVerifyParams{ChallengeID: "ac1", Credential: map[string]any{"id": "cred1"}}); err != nil {
 		t.Fatal(err)
 	}
 	if pks, err := c.Passkey.List(ctx); err != nil || len(pks) != 1 {
@@ -400,7 +430,7 @@ func TestAdminAPI(t *testing.T) {
 		case r.URL.Path == "/auth/v1/invite":
 			_, _ = w.Write([]byte(`{"id":"u2","email":"inv@test.com"}`))
 		case r.URL.Path == "/auth/v1/admin/generate_link":
-			_, _ = w.Write([]byte(`{"action_link":"https://ex/verify","email_otp":"123456"}`))
+			_, _ = w.Write([]byte(`{"id":"u1","email":"a@b.com","action_link":"https://ex/verify","email_otp":"123456","hashed_token":"ht1","redirect_to":"https://ex/cb","verification_type":"magiclink"}`))
 		case r.URL.Path == "/auth/v1/logout":
 			w.WriteHeader(http.StatusNoContent)
 		case r.URL.Path == "/auth/v1/admin/users/u1/factors":
@@ -418,7 +448,7 @@ func TestAdminAPI(t *testing.T) {
 		case r.URL.Path == "/auth/v1/admin/oauth/clients/c1/regenerate_secret":
 			_, _ = w.Write([]byte(`{"client_id":"c1","client_secret":"newsec"}`))
 		case r.URL.Path == "/auth/v1/admin/users/u1/passkeys":
-			_, _ = w.Write([]byte(`{"passkeys":[{"id":"pk1"}]}`))
+			_, _ = w.Write([]byte(`[{"id":"pk1"}]`))
 		case r.URL.Path == "/auth/v1/admin/users/u1/passkeys/pk1":
 			w.WriteHeader(http.StatusNoContent)
 		case r.URL.Path == "/auth/v1/admin/custom-providers" && r.Method == http.MethodGet:
@@ -450,14 +480,14 @@ func TestAdminAPI(t *testing.T) {
 	if _, err := c.Admin.UpdateUserById(ctx, "u1", auth.AdminUpdateUserParams{Email: "updated@test.com"}); err != nil {
 		t.Fatal(err)
 	}
-	if err := c.Admin.DeleteUser(ctx, "u1"); err != nil {
-		t.Fatal(err)
+	if delUser, err := c.Admin.DeleteUser(ctx, "u1"); err != nil || delUser == nil || delUser.ID != "u1" {
+		t.Fatalf("DeleteUser = %+v, err = %v", delUser, err)
 	}
 	if _, err := c.Admin.InviteUserByEmail(ctx, "inv@test.com", nil); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := c.Admin.GenerateLink(ctx, auth.GenerateLinkParams{Type: "magiclink", Email: "a@b.com"}); err != nil {
-		t.Fatal(err)
+	if linkResp, err := c.Admin.GenerateLink(ctx, auth.GenerateLinkParams{Type: "magiclink", Email: "a@b.com"}); err != nil || linkResp.User == nil || linkResp.User.ID != "u1" || linkResp.ActionLink != "https://ex/verify" {
+		t.Fatalf("GenerateLink = %+v, err = %v", linkResp, err)
 	}
 	if err := c.Admin.SignOut(ctx, "user-jwt"); err != nil {
 		t.Fatal(err)

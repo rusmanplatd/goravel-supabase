@@ -10,6 +10,7 @@ import (
 
 	"github.com/rusmanplatd/goravel-supabase/auth"
 	"github.com/rusmanplatd/goravel-supabase/client"
+	"github.com/rusmanplatd/goravel-supabase/postgrest"
 )
 
 func TestClientValidationAndThirdPartyAccessTokenMode(t *testing.T) {
@@ -102,5 +103,71 @@ func TestClientConcurrentWithTokenIsolation(t *testing.T) {
 	}
 	if rootOut["auth"] != "Bearer anon-key" || rootOut["profile"] != "public" {
 		t.Fatalf("root mutated: %+v", rootOut)
+	}
+}
+
+func TestClientFromCustomHTTPClientAndProjectScopedStorageKey(t *testing.T) {
+	var gotAPIKey, gotAuth string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotAPIKey = r.Header.Get("apikey")
+		gotAuth = r.Header.Get("Authorization")
+		w.Header().Set("Content-Type", "application/json")
+		if r.URL.Path == "/auth/v1/user" {
+			_, _ = w.Write([]byte(`{"id":"u1"}`))
+			return
+		}
+		_, _ = w.Write([]byte(`[]`))
+	}))
+	defer srv.Close()
+
+	c, err := client.New(srv.URL, "test-apikey",
+		client.WithHTTPClient(srv.Client()),
+		client.WithAccessToken(func(context.Context) (string, error) { return "custom-jwt", nil }),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer c.Close()
+
+	// Per-request custom HTTPClient in From() must retain apikey and Authorization
+	customHC := &http.Client{Transport: srv.Client().Transport}
+	if _, err := c.From("items", postgrest.QueryBuilderOptions{HTTPClient: customHC}).Select("*").ExecuteRaw(context.Background()); err != nil {
+		t.Fatalf("From with custom HTTPClient failed: %v", err)
+	}
+	if gotAPIKey != "test-apikey" || gotAuth != "Bearer custom-jwt" {
+		t.Fatalf("custom HTTPClient lost Supabase headers: apikey=%q auth=%q", gotAPIKey, gotAuth)
+	}
+
+	// Two clients targeting different projects sharing one Storage get distinct project-ref storage keys
+	sharedStorage := auth.NewMemoryStorage()
+	cA, err := client.New("https://proj-a.supabase.co", "key-a",
+		client.WithHTTPClient(srv.Client()),
+		client.WithAuthStorage(sharedStorage),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cA.Close()
+	cB, err := client.New("https://proj-b.supabase.co", "key-b",
+		client.WithHTTPClient(srv.Client()),
+		client.WithAuthStorage(sharedStorage),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cB.Close()
+
+	// Verify distinct storage keys by pre-populating sb-proj-a-auth-token and sb-proj-b-auth-token
+	ctx := context.Background()
+	_ = sharedStorage.SetItem(ctx, "sb-proj-a-auth-token", `{"access_token":"tok-a","refresh_token":"rt-a","expires_at":9999999999}`)
+	_ = sharedStorage.SetItem(ctx, "sb-proj-b-auth-token", `{"access_token":"tok-b","refresh_token":"rt-b","expires_at":9999999999}`)
+
+	sA, err := cA.Auth.GetSession(ctx)
+	if err != nil || sA == nil || sA.AccessToken != "tok-a" {
+		t.Fatalf("proj-a session = %+v, err = %v", sA, err)
+	}
+	sB, err := cB.Auth.GetSession(ctx)
+	if err != nil || sB == nil || sB.AccessToken != "tok-b" {
+		t.Fatalf("proj-b session = %+v, err = %v", sB, err)
 	}
 }

@@ -2,7 +2,9 @@ package storage
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/url"
@@ -46,8 +48,10 @@ type DownloadOptions struct {
 }
 
 type SignedUrlOptions struct {
-	Download  string // "" (none), "true", or filename
-	Transform *TransformOptions
+	Download   string // "" (none), "true", or filename
+	Transform  *TransformOptions
+	CacheNonce string
+	VersionID  string
 }
 
 type SignedUrlResponse struct {
@@ -63,9 +67,10 @@ type SignedUploadUrlResponse struct {
 }
 
 type PublicUrlOptions struct {
-	Download  string
-	Transform *TransformOptions
-	Nonce     string
+	Download   string
+	Transform  *TransformOptions
+	CacheNonce string
+	VersionID  string
 }
 
 type CopyMoveOptions struct {
@@ -74,7 +79,7 @@ type CopyMoveOptions struct {
 }
 
 type DeleteObjectEntry struct {
-	Name      string `json:"name"`
+	Path      string `json:"path"`
 	VersionID string `json:"versionId,omitempty"`
 }
 
@@ -118,14 +123,24 @@ type SortBy struct {
 	Order  string `json:"order,omitempty"`
 }
 
+// VersionFilter controls whether noncurrent versions or delete markers are included in ListV2.
+type VersionFilter string
+
+const (
+	VersionExclude VersionFilter = "exclude"
+	VersionInclude VersionFilter = "include"
+	VersionOnly    VersionFilter = "only"
+)
+
 type SearchV2Options struct {
-	Prefix             string `json:"prefix,omitempty"`
-	Cursor             string `json:"cursor,omitempty"`
-	Limit              int    `json:"limit,omitempty"`
-	WithDelimiter      bool   `json:"with_delimiter,omitempty"`
-	NoncurrentVersions bool   `json:"noncurrent_versions,omitempty"`
-	DeleteMarkers      bool   `json:"delete_markers,omitempty"`
-	ExactMatch         bool   `json:"exact_match,omitempty"`
+	Prefix             string        `json:"prefix,omitempty"`
+	Cursor             string        `json:"cursor,omitempty"`
+	Limit              int           `json:"limit,omitempty"`
+	WithDelimiter      bool          `json:"with_delimiter,omitempty"`
+	NoncurrentVersions VersionFilter `json:"noncurrentVersions,omitempty"`
+	DeleteMarkers      VersionFilter `json:"deleteMarkers,omitempty"`
+	ExactMatch         bool          `json:"exactMatch,omitempty"`
+	SortBy             *SortBy       `json:"sortBy,omitempty"`
 }
 
 type SearchV2Result struct {
@@ -174,7 +189,7 @@ func (f *FileApi) uploadOrUpdate(ctx context.Context, method, path string, body 
 	}
 	if opt.Metadata != nil {
 		if mb, err := json.Marshal(opt.Metadata); err == nil {
-			req.Header.Set("x-metadata", string(mb))
+			req.Header.Set("x-metadata", base64.StdEncoding.EncodeToString(mb))
 		}
 	}
 	for k, v := range opt.Headers {
@@ -330,19 +345,59 @@ func (f *FileApi) Download(ctx context.Context, path string, opts ...DownloadOpt
 	return io.ReadAll(rc)
 }
 
+func appendSignedUrlQuery(full string, opt SignedUrlOptions) string {
+	appendParam := func(k, v string) {
+		sep := "?"
+		if strings.Contains(full, "?") {
+			sep = "&"
+		}
+		if v == "" {
+			full += sep + k + "="
+		} else {
+			full += sep + k + "=" + url.QueryEscape(v)
+		}
+	}
+	if opt.Download != "" {
+		if opt.Download == "true" {
+			appendParam("download", "")
+		} else {
+			appendParam("download", opt.Download)
+		}
+	}
+	if opt.CacheNonce != "" {
+		appendParam("cacheNonce", opt.CacheNonce)
+	}
+	return full
+}
+
 func (f *FileApi) CreateSignedUrl(ctx context.Context, path string, expiresIn int, opts ...SignedUrlOptions) (string, error) {
 	body := map[string]any{"expiresIn": expiresIn}
 	var opt SignedUrlOptions
 	if len(opts) > 0 {
 		opt = opts[0]
 		if opt.Transform != nil {
-			body["transform"] = map[string]any{
-				"width":   opt.Transform.Width,
-				"height":  opt.Transform.Height,
-				"resize":  opt.Transform.Resize,
-				"quality": opt.Transform.Quality,
-				"format":  opt.Transform.Format,
+			t := map[string]any{}
+			if opt.Transform.Width > 0 {
+				t["width"] = opt.Transform.Width
 			}
+			if opt.Transform.Height > 0 {
+				t["height"] = opt.Transform.Height
+			}
+			if opt.Transform.Resize != "" {
+				t["resize"] = opt.Transform.Resize
+			}
+			if opt.Transform.Quality > 0 {
+				t["quality"] = opt.Transform.Quality
+			}
+			if opt.Transform.Format != "" {
+				t["format"] = opt.Transform.Format
+			}
+			if len(t) > 0 {
+				body["transform"] = t
+			}
+		}
+		if opt.VersionID != "" {
+			body["versionId"] = opt.VersionID
 		}
 	}
 	var resp SignedUrlResponse
@@ -350,18 +405,7 @@ func (f *FileApi) CreateSignedUrl(ctx context.Context, path string, expiresIn in
 		return "", err
 	}
 	full := f.client.url + resp.SignedURL
-	if opt.Download != "" {
-		sep := "?"
-		if strings.Contains(full, "?") {
-			sep = "&"
-		}
-		if opt.Download == "true" {
-			full += sep + "download="
-		} else {
-			full += sep + "download=" + url.QueryEscape(opt.Download)
-		}
-	}
-	return full, nil
+	return appendSignedUrlQuery(full, opt), nil
 }
 
 func (f *FileApi) CreateSignedUrls(ctx context.Context, paths []string, expiresIn int, opts ...SignedUrlOptions) ([]SignedUrlResponse, error) {
@@ -369,13 +413,20 @@ func (f *FileApi) CreateSignedUrls(ctx context.Context, paths []string, expiresI
 		"expiresIn": expiresIn,
 		"paths":     paths,
 	}
+	var opt SignedUrlOptions
+	if len(opts) > 0 {
+		opt = opts[0]
+	}
 	var resp []SignedUrlResponse
 	if err := f.client.doJSON(ctx, http.MethodPost, "/object/sign/"+url.PathEscape(f.bucketID), body, &resp); err != nil {
 		return nil, err
 	}
 	for i := range resp {
-		if resp[i].SignedURL != "" && !strings.HasPrefix(resp[i].SignedURL, "http") {
-			resp[i].SignedURL = f.client.url + resp[i].SignedURL
+		if resp[i].SignedURL != "" {
+			if !strings.HasPrefix(resp[i].SignedURL, "http") {
+				resp[i].SignedURL = f.client.url + resp[i].SignedURL
+			}
+			resp[i].SignedURL = appendSignedUrlQuery(resp[i].SignedURL, opt)
 		}
 	}
 	return resp, nil
@@ -438,8 +489,11 @@ func (f *FileApi) GetPublicUrl(path string, opts ...PublicUrlOptions) string {
 			q.Set("download", opt.Download)
 		}
 	}
-	if opt.Nonce != "" {
-		q.Set("nonce", opt.Nonce)
+	if opt.CacheNonce != "" {
+		q.Set("cacheNonce", opt.CacheNonce)
+	}
+	if opt.VersionID != "" {
+		q.Set("versionId", opt.VersionID)
 	}
 	if enc := q.Encode(); enc != "" {
 		return base + "?" + enc
@@ -556,26 +610,17 @@ func (f *FileApi) ListV2(ctx context.Context, opts ...SearchV2Options) (*SearchV
 }
 
 func (f *FileApi) Exists(ctx context.Context, path string) (bool, error) {
-	if ctx == nil {
-		ctx = context.Background()
-	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodHead, f.client.url+"/object/"+url.PathEscape(f.bucketID)+"/"+cleanPath(path), nil)
-	if err != nil {
-		return false, err
-	}
-	f.client.applyHeaders(req)
-	resp, err := f.client.httpClient.Do(req)
-	if err != nil {
-		return false, &StorageError{Name: "StorageUnknownError", Message: err.Error(), Err: err}
-	}
-	resp.Body.Close()
-	if resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusBadRequest {
-		return false, nil
-	}
-	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+	_, err := f.Info(ctx, path)
+	if err == nil {
 		return true, nil
 	}
-	return false, decodeStorageApiError(nil, resp.StatusCode, resp.Status)
+	var apiErr *StorageApiError
+	if errors.As(err, &apiErr) {
+		if apiErr.Code == "NoSuchKey" || (apiErr.StatusCode == http.StatusNotFound && apiErr.Code != "NoSuchBucket" && apiErr.Code != "InvalidJWT") {
+			return false, nil
+		}
+	}
+	return false, err
 }
 
 func (f *FileApi) Info(ctx context.Context, path string, opts ...InfoOptions) (*FileObjectV2, error) {
@@ -590,14 +635,18 @@ func (f *FileApi) Info(ctx context.Context, path string, opts ...InfoOptions) (*
 	return &out, nil
 }
 
-func (f *FileApi) PurgeCache(ctx context.Context, path string, opts ...PurgeCacheOptions) error {
-	body := map[string]any{}
+func (f *FileApi) PurgeCache(ctx context.Context, path string, opts ...PurgeCacheOptions) (*PurgeResponse, error) {
+	reqPath := "/cdn/" + url.PathEscape(f.bucketID) + "/" + cleanPath(path)
 	if len(opts) > 0 && opts[0].Transformations {
-		body["transformations"] = true
+		reqPath += "?transformations=true"
 	}
-	return f.client.doJSON(ctx, http.MethodPost, "/object/purge/"+url.PathEscape(f.bucketID)+"/"+cleanPath(path), body, nil)
+	var resp PurgeResponse
+	if err := f.client.doJSON(ctx, http.MethodDelete, reqPath, nil, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
 }
 
-func (f *FileApi) PurgeBucketCache(ctx context.Context, opts ...PurgeCacheOptions) error {
+func (f *FileApi) PurgeBucketCache(ctx context.Context, opts ...PurgeCacheOptions) (*PurgeResponse, error) {
 	return f.client.PurgeBucketCache(ctx, f.bucketID, opts...)
 }

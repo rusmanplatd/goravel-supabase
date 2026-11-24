@@ -20,6 +20,7 @@ const (
 	DefaultRefreshMargin   = 60 * time.Second
 	DefaultJWKSCacheTTL    = 10 * time.Minute
 	DefaultAutoRefreshTick = 30 * time.Second
+	DefaultAPIVersion      = "2024-01-01"
 )
 
 // Client is a pure-Go Supabase GoTrue Auth client.
@@ -192,6 +193,9 @@ func (c *Client) applyDefaultHeaders(req *http.Request) {
 		if req.Header.Get(k) == "" {
 			req.Header.Set(k, v)
 		}
+	}
+	if req.Header.Get("X-Supabase-Api-Version") == "" {
+		req.Header.Set("X-Supabase-Api-Version", DefaultAPIVersion)
 	}
 }
 
@@ -796,14 +800,15 @@ func (c *Client) VerifyOtp(ctx context.Context, params VerifyOtpParams) (*AuthRe
 	if params.TokenHash != "" {
 		body["token_hash"] = params.TokenHash
 	}
-	if params.RedirectTo != "" {
-		body["redirect_to"] = params.RedirectTo
-	}
 	if params.CaptchaToken != "" {
 		body["gotrue_meta_security"] = map[string]string{"captcha_token": params.CaptchaToken}
 	}
+	path := "/verify"
+	if params.RedirectTo != "" {
+		path += "?redirect_to=" + url.QueryEscape(params.RedirectTo)
+	}
 	var raw map[string]any
-	if err := c.doJSON(ctx, http.MethodPost, "/verify", body, "", &raw); err != nil {
+	if err := c.doJSON(ctx, http.MethodPost, path, body, "", &raw); err != nil {
 		return nil, err
 	}
 	ev := EventSignedIn

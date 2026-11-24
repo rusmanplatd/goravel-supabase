@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strings"
 	"time"
 )
@@ -15,14 +16,15 @@ const DefaultURLLengthLimit = 8000
 
 // Client is a pure-Go PostgREST client.
 type Client struct {
-	url            string
-	headers        http.Header
-	schema         string
-	httpClient     *http.Client
-	timeout        time.Duration
-	urlLengthLimit int
-	retry          bool
-	retryBaseDelay time.Duration
+	url               string
+	headers           http.Header
+	schema            string
+	httpClient        *http.Client
+	httpClientWrapper func(*http.Client) *http.Client
+	timeout           time.Duration
+	urlLengthLimit    int
+	retry             bool
+	retryBaseDelay    time.Duration
 }
 
 // Option configures a PostgREST Client.
@@ -50,6 +52,13 @@ func WithHTTPClient(hc *http.Client) Option {
 		if hc != nil {
 			c.httpClient = hc
 		}
+	}
+}
+
+// WithHTTPClientWrapper sets a wrapper applied to per-request QueryBuilderOptions.HTTPClient instances.
+func WithHTTPClientWrapper(fn func(*http.Client) *http.Client) Option {
+	return func(c *Client) {
+		c.httpClientWrapper = fn
 	}
 }
 
@@ -137,6 +146,9 @@ func (c *Client) From(relation string, opts ...QueryBuilderOptions) *QueryBuilde
 		}
 		if opt.HTTPClient != nil {
 			hc = opt.HTTPClient
+			if c.httpClientWrapper != nil {
+				hc = c.httpClientWrapper(hc)
+			}
 		}
 		if opt.Timeout > 0 {
 			timeout = opt.Timeout
@@ -155,6 +167,51 @@ func (c *Client) From(relation string, opts ...QueryBuilderOptions) *QueryBuilde
 	}
 }
 
+func hasNestedObjectArg(args map[string]any) bool {
+	for _, v := range args {
+		if v == nil {
+			continue
+		}
+		rv := reflect.ValueOf(v)
+		for rv.Kind() == reflect.Pointer {
+			if rv.IsNil() {
+				break
+			}
+			rv = rv.Elem()
+		}
+		switch rv.Kind() {
+		case reflect.Map, reflect.Struct:
+			return true
+		case reflect.Slice, reflect.Array:
+			for i := 0; i < rv.Len(); i++ {
+				ev := rv.Index(i)
+				if ev.Kind() == reflect.Interface && !ev.IsNil() {
+					ev = ev.Elem()
+				}
+				if ev.Kind() == reflect.Pointer && !ev.IsNil() {
+					ev = ev.Elem()
+				}
+				if ev.Kind() == reflect.Map || ev.Kind() == reflect.Struct {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+func formatRPCSliceQuery(v any) (string, bool) {
+	rv := reflect.ValueOf(v)
+	if rv.Kind() != reflect.Slice && rv.Kind() != reflect.Array {
+		return "", false
+	}
+	parts := make([]string, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		parts[i] = fmt.Sprint(rv.Index(i).Interface())
+	}
+	return "{" + strings.Join(parts, ",") + "}", true
+}
+
 // RPC invokes a Postgres stored procedure / function via `/rpc/<fn>`.
 func (c *Client) RPC(fn string, args map[string]any, opts ...RPCOptions) *FilterBuilder {
 	var opt RPCOptions
@@ -167,8 +224,16 @@ func (c *Client) RPC(fn string, args map[string]any, opts ...RPCOptions) *Filter
 
 	method := http.MethodPost
 	var body any
+	var prefers []string
+	if opt.Count != CountNone {
+		prefers = append(prefers, "count="+string(opt.Count))
+	}
 
-	if opt.Head || opt.Get {
+	if opt.Head && hasNestedObjectArg(args) {
+		method = http.MethodPost
+		body = args
+		prefers = append(prefers, "return=minimal")
+	} else if opt.Head || opt.Get {
 		if opt.Head {
 			method = http.MethodHead
 		} else {
@@ -179,16 +244,9 @@ func (c *Client) RPC(fn string, args map[string]any, opts ...RPCOptions) *Filter
 			if v == nil {
 				continue
 			}
-			switch tv := v.(type) {
-			case []string:
-				q.Set(k, "{"+strings.Join(tv, ",")+"}")
-			case []any:
-				parts := make([]string, len(tv))
-				for i, elem := range tv {
-					parts[i] = fmt.Sprint(elem)
-				}
-				q.Set(k, "{"+strings.Join(parts, ",")+"}")
-			default:
+			if formatted, ok := formatRPCSliceQuery(v); ok {
+				q.Set(k, formatted)
+			} else {
 				q.Set(k, fmt.Sprint(v))
 			}
 		}
@@ -201,8 +259,8 @@ func (c *Client) RPC(fn string, args map[string]any, opts ...RPCOptions) *Filter
 		}
 	}
 
-	if opt.Count != CountNone {
-		headers.Add("Prefer", "count="+string(opt.Count))
+	if len(prefers) > 0 {
+		headers.Add("Prefer", strings.Join(prefers, ","))
 	}
 
 	return &FilterBuilder{

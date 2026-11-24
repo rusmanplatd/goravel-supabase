@@ -1,6 +1,7 @@
 package functions
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 )
@@ -24,10 +25,27 @@ func (e *FunctionsError) Unwrap() error {
 	return e.Err
 }
 
+// MarshalJSON serializes FunctionsError safely without failing on unmarshalable *http.Response fields.
+func (e *FunctionsError) MarshalJSON() ([]byte, error) {
+	out := map[string]any{
+		"name":    e.Name,
+		"message": e.Message,
+	}
+	if e.Err != nil {
+		out["error"] = e.Err.Error()
+	}
+	if resp, ok := e.Context.(*http.Response); ok && resp != nil {
+		out["status"] = resp.StatusCode
+	}
+	return json.Marshal(out)
+}
+
 // FunctionsFetchError is returned when the network request to an Edge Function fails.
 type FunctionsFetchError struct {
 	*FunctionsError
 }
+
+func (e *FunctionsFetchError) Unwrap() error { return e.FunctionsError }
 
 func NewFunctionsFetchError(err error) *FunctionsFetchError {
 	return &FunctionsFetchError{
@@ -43,9 +61,11 @@ func NewFunctionsFetchError(err error) *FunctionsFetchError {
 // FunctionsRelayError is returned when the Supabase relay reports an error (x-relay-error: true).
 type FunctionsRelayError struct {
 	*FunctionsError
-	Response *http.Response
-	Body     []byte
+	Response *http.Response `json:"-"`
+	Body     []byte         `json:"body,omitempty"`
 }
+
+func (e *FunctionsRelayError) Unwrap() error { return e.FunctionsError }
 
 func NewFunctionsRelayError(resp *http.Response, body []byte) *FunctionsRelayError {
 	return &FunctionsRelayError{
@@ -62,9 +82,11 @@ func NewFunctionsRelayError(resp *http.Response, body []byte) *FunctionsRelayErr
 // FunctionsHttpError is returned when the Edge Function responds with a non-2xx status code.
 type FunctionsHttpError struct {
 	*FunctionsError
-	Response *http.Response
-	Body     []byte
+	Response *http.Response `json:"-"`
+	Body     []byte         `json:"body,omitempty"`
 }
+
+func (e *FunctionsHttpError) Unwrap() error { return e.FunctionsError }
 
 func NewFunctionsHttpError(resp *http.Response, body []byte) *FunctionsHttpError {
 	return &FunctionsHttpError{

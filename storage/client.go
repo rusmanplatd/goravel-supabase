@@ -14,8 +14,9 @@ import (
 type VersioningStatus string
 
 const (
-	VersioningEnabled   VersioningStatus = "Enabled"
-	VersioningSuspended VersioningStatus = "Suspended"
+	VersioningDisabled  VersioningStatus = "DISABLED"
+	VersioningEnabled   VersioningStatus = "ENABLED"
+	VersioningSuspended VersioningStatus = "SUSPENDED"
 )
 
 // Bucket represents a Supabase Storage bucket.
@@ -68,6 +69,11 @@ type BucketLifecycleConfiguration struct {
 // PurgeCacheOptions configures CDN cache purge operations.
 type PurgeCacheOptions struct {
 	Transformations bool `json:"transformations,omitempty"`
+}
+
+// PurgeResponse is returned by CDN cache purge endpoints.
+type PurgeResponse struct {
+	Message string `json:"message"`
 }
 
 // Client is a pure-Go Supabase Storage client.
@@ -371,12 +377,16 @@ func (c *Client) DeleteBucketLifecycle(ctx context.Context, id string) error {
 	return c.doJSON(ctx, http.MethodDelete, "/bucket/"+url.PathEscape(id)+"/lifecycle", nil, nil)
 }
 
-func (c *Client) PurgeBucketCache(ctx context.Context, id string, opts ...PurgeCacheOptions) error {
-	body := map[string]any{}
+func (c *Client) PurgeBucketCache(ctx context.Context, id string, opts ...PurgeCacheOptions) (*PurgeResponse, error) {
+	reqPath := "/cdn/" + url.PathEscape(id)
 	if len(opts) > 0 && opts[0].Transformations {
-		body["transformations"] = true
+		reqPath += "?transformations=true"
 	}
-	return c.doJSON(ctx, http.MethodPost, "/bucket/"+url.PathEscape(id)+"/purge", body, nil)
+	var resp PurgeResponse
+	if err := c.doJSON(ctx, http.MethodDelete, reqPath, nil, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
 }
 
 func itoa(n int) string {

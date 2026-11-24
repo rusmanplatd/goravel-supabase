@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -62,11 +64,18 @@ type PostgresChangesFilter struct {
 
 // SendPayload is sent via Channel.Send or Channel.HTTPSend.
 type SendPayload struct {
-	Type    string         `json:"type"` // "broadcast" | "presence" | "postgres_changes"
-	Event   string         `json:"event"`
-	Payload any            `json:"payload,omitempty"`
-	Persist bool           `json:"persist,omitempty"`
-	Extra   map[string]any `json:"-"`
+	Type       string         `json:"type"` // "broadcast" | "presence" | "postgres_changes"
+	Event      string         `json:"event"`
+	Payload    any            `json:"payload,omitempty"`
+	Persist    bool           `json:"persist,omitempty"`
+	PersistTTL int            `json:"-"`
+	Extra      map[string]any `json:"-"`
+}
+
+// HTTPSendOptions configures Channel.HTTPSend.
+type HTTPSendOptions struct {
+	Persist    bool
+	PersistTTL int
 }
 
 type channelBinding struct {
@@ -275,7 +284,10 @@ func (ch *Channel) Send(ctx context.Context, msg SendPayload) error {
 	ch.mu.RUnlock()
 
 	if msg.Type == BroadcastEvent && state != ChannelJoined {
-		return ch.HTTPSend(ctx, msg.Event, msg.Payload, msg.Persist)
+		return ch.HTTPSend(ctx, msg.Event, msg.Payload, HTTPSendOptions{
+			Persist:    msg.Persist,
+			PersistTTL: msg.PersistTTL,
+		})
 	}
 
 	payload := map[string]any{
@@ -299,34 +311,59 @@ func (ch *Channel) Send(ctx context.Context, msg SendPayload) error {
 	})
 }
 
-// HTTPSend dispatches a broadcast message via the Realtime REST endpoint `/realtime/v1/api/broadcast`.
-func (ch *Channel) HTTPSend(ctx context.Context, event string, payload any, persist ...bool) error {
+// HTTPSend dispatches a broadcast message via the Realtime REST endpoint
+// `/api/broadcast/{subTopic}/events/{event}`.
+func (ch *Channel) HTTPSend(ctx context.Context, event string, payload any, opts ...HTTPSendOptions) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	endpoint := ch.client.httpBroadcastURL()
-	topic := strings.TrimPrefix(ch.topic, "realtime:")
-	msgObj := map[string]any{
-		"topic":   topic,
-		"event":   event,
-		"payload": payload,
-		"private": ch.config.Private,
+	if payload == nil {
+		return errors.New("realtime: HTTPSend payload must not be nil")
 	}
-	if len(persist) > 0 && persist[0] {
-		msgObj["persist"] = true
+	var opt HTTPSendOptions
+	if len(opts) > 0 {
+		opt = opts[0]
 	}
-	bodyBytes, err := json.Marshal(map[string]any{
-		"messages": []any{msgObj},
-	})
-	if err != nil {
-		return err
+	if (opt.Persist || opt.PersistTTL > 0) && !ch.config.Private {
+		return errors.New("realtime: persist is only supported on private channels")
+	}
+
+	subTopic := strings.TrimPrefix(ch.topic, "realtime:")
+	endpoint := ch.client.httpBroadcastURL() + "/" + url.PathEscape(subTopic) + "/events/" + url.PathEscape(event)
+	q := url.Values{}
+	if ch.config.Private {
+		q.Set("private", "true")
+	}
+	if opt.PersistTTL > 0 {
+		q.Set("persist[ttl]", strconv.Itoa(opt.PersistTTL))
+	} else if opt.Persist {
+		q.Set("persist", "true")
+	}
+	if enc := q.Encode(); enc != "" {
+		endpoint += "?" + enc
+	}
+
+	var (
+		bodyBytes   []byte
+		contentType string
+		err         error
+	)
+	if bin, ok := payload.([]byte); ok {
+		bodyBytes = bin
+		contentType = "application/octet-stream"
+	} else {
+		bodyBytes, err = json.Marshal(payload)
+		if err != nil {
+			return err
+		}
+		contentType = "application/json"
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(bodyBytes))
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", contentType)
 	if ch.client.apiKey != "" {
 		req.Header.Set("apikey", ch.client.apiKey)
 	}
@@ -344,6 +381,10 @@ func (ch *Channel) HTTPSend(ctx context.Context, event string, payload any, pers
 		return err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNotFound {
+		raw, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("realtime: HTTPSend endpoint not found (404, check server version): %s", string(raw))
+	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		raw, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("realtime: HTTPSend failed (%d): %s", resp.StatusCode, string(raw))
