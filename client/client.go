@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 
 	"github.com/rusmanplatd/goravel-supabase/auth"
 	"github.com/rusmanplatd/goravel-supabase/functions"
@@ -127,17 +128,35 @@ func New(supabaseURL, supabaseKey string, optionFns ...Option) (*Client, error) 
 
 	c.wireServices(tokenProvider, opts.Schema)
 
-	// Cross-client token sync: Auth state changes -> Realtime.SetAuth
-	if opts.AccessToken == nil {
+	// Cross-client token sync: Auth state changes -> Realtime.SetAuth (deduplicated)
+	if opts.AccessToken != nil {
+		if tok, err := opts.AccessToken(context.Background()); err == nil && tok != "" {
+			c.Realtime.SetAuth(tok)
+		}
+	} else {
+		var lastMu sync.Mutex
+		var lastToken string
 		c.authSub = c.Auth.OnAuthStateChange(func(event auth.AuthChangeEvent, session *auth.Session) {
+			var next string
 			switch event {
 			case auth.EventInitialSession, auth.EventSignedIn, auth.EventTokenRefreshed:
-				if session != nil && session.AccessToken != "" {
-					c.Realtime.SetAuth(session.AccessToken)
+				if session == nil || session.AccessToken == "" {
+					return
 				}
+				next = session.AccessToken
 			case auth.EventSignedOut:
-				c.Realtime.SetAuth("")
+				next = ""
+			default:
+				return
 			}
+			lastMu.Lock()
+			if next == lastToken && event != auth.EventSignedOut {
+				lastMu.Unlock()
+				return
+			}
+			lastToken = next
+			lastMu.Unlock()
+			c.Realtime.SetAuth(next)
 		})
 	}
 
@@ -178,6 +197,9 @@ func (c *Client) wireServices(tokenProvider transport.TokenProvider, schema stri
 	if c.opts.DBRetry != nil {
 		pgOpts = append(pgOpts, postgrest.WithRetry(*c.opts.DBRetry))
 	}
+	if c.opts.DBRetryBaseDelay > 0 {
+		pgOpts = append(pgOpts, postgrest.WithRetryBaseDelay(c.opts.DBRetryBaseDelay))
+	}
 	if c.opts.DBURLLengthLimit > 0 {
 		pgOpts = append(pgOpts, postgrest.WithURLLengthLimit(c.opts.DBURLLengthLimit))
 	}
@@ -210,6 +232,12 @@ func (c *Client) wireServices(tokenProvider transport.TokenProvider, schema stri
 	}
 	if c.opts.RealtimeVsn != "" {
 		rtOpts = append(rtOpts, realtime.WithVsn(c.opts.RealtimeVsn))
+	}
+	if c.opts.RealtimeReconnectAfterMs != nil {
+		rtOpts = append(rtOpts, realtime.WithReconnectAfterMs(c.opts.RealtimeReconnectAfterMs))
+	}
+	if c.opts.RealtimeDeferredDisconnect > 0 {
+		rtOpts = append(rtOpts, realtime.WithDeferredDisconnect(c.opts.RealtimeDeferredDisconnect))
 	}
 	if c.opts.Logger != nil {
 		rtOpts = append(rtOpts, realtime.WithLogger(c.opts.Logger))

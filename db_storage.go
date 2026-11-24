@@ -52,8 +52,8 @@ type DBStorage struct {
 	dialect     Dialect
 	autoMigrate bool
 
-	ensureOnce sync.Once
-	ensureErr  error
+	ensureMu sync.Mutex
+	ensured  bool
 }
 
 // DBStorageOptions configures DBStorage.
@@ -132,7 +132,7 @@ func (s *DBStorage) BuildSelectSQL() string {
 	}
 }
 
-// BuildUpsertSQL returns the dialect-appropriate UPSERT SQL statement for Postgres/MySQL/SQLite.
+// BuildUpsertSQL returns the dialect-appropriate UPSERT SQL statement for Postgres/MySQL/SQLite/SQLServer.
 func (s *DBStorage) BuildUpsertSQL() string {
 	switch s.dialect {
 	case DialectPostgres:
@@ -143,6 +143,11 @@ func (s *DBStorage) BuildUpsertSQL() string {
 	case DialectMySQL:
 		return fmt.Sprintf(
 			"INSERT INTO %s (`key`, `value`, updated_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), updated_at = VALUES(updated_at)",
+			s.table,
+		)
+	case DialectSQLServer:
+		return fmt.Sprintf(
+			`MERGE %s AS target USING (VALUES (@p1, @p2, @p3)) AS source ([key], [value], updated_at) ON target.[key] = source.[key] WHEN MATCHED THEN UPDATE SET [value] = source.[value], updated_at = source.updated_at WHEN NOT MATCHED THEN INSERT ([key], [value], updated_at) VALUES (source.[key], source.[value], source.updated_at);`,
 			s.table,
 		)
 	default:
@@ -176,10 +181,16 @@ func (s *DBStorage) maybeEnsure(ctx context.Context) error {
 	if !s.autoMigrate {
 		return nil
 	}
-	s.ensureOnce.Do(func() {
-		s.ensureErr = s.EnsureTable(ctx)
-	})
-	return s.ensureErr
+	s.ensureMu.Lock()
+	defer s.ensureMu.Unlock()
+	if s.ensured {
+		return nil
+	}
+	if err := s.EnsureTable(ctx); err != nil {
+		return err
+	}
+	s.ensured = true
+	return nil
 }
 
 // GetItem fetches the stored value for key using raw SELECT, returning ("", nil) when absent.
@@ -203,23 +214,6 @@ func (s *DBStorage) SetItem(ctx context.Context, key, value string) error {
 		return err
 	}
 	now := time.Now().UTC()
-	if s.dialect == DialectSQLServer {
-		res, err := s.conn(ctx).Update(
-			fmt.Sprintf(`UPDATE %s SET [value] = @p1, updated_at = @p2 WHERE [key] = @p3`, s.table),
-			value, now, key,
-		)
-		if err != nil {
-			return err
-		}
-		if res != nil && res.RowsAffected > 0 {
-			return nil
-		}
-		_, err = s.conn(ctx).Insert(
-			fmt.Sprintf(`INSERT INTO %s ([key], [value], updated_at) VALUES (@p1, @p2, @p3)`, s.table),
-			key, value, now,
-		)
-		return err
-	}
 	_, err := s.conn(ctx).Insert(s.BuildUpsertSQL(), key, value, now)
 	return err
 }

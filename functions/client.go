@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime"
 	"mime/multipart"
 	"net/http"
+	"net/textproto"
 	"net/url"
 	"strings"
 	"sync"
@@ -18,12 +20,13 @@ import (
 
 // Client invokes Supabase Edge Functions.
 type Client struct {
-	mu         sync.RWMutex
-	url        string
-	headers    map[string]string
-	region     FunctionRegion
-	httpClient *http.Client
-	apiKey     string
+	mu               sync.RWMutex
+	url              string
+	headers          map[string]string
+	region           FunctionRegion
+	httpClient       *http.Client
+	apiKey           string
+	tracePropagation *transport.TracePropagationOptions
 }
 
 // Option configures a Functions Client.
@@ -64,6 +67,13 @@ func WithAPIKey(apiKey string) Option {
 	}
 }
 
+// WithTracePropagation enables W3C traceparent/tracestate/baggage propagation on a standalone Functions client.
+func WithTracePropagation(tp transport.TracePropagationOptions) Option {
+	return func(c *Client) {
+		c.tracePropagation = &tp
+	}
+}
+
 // New creates a new Edge Functions Client bound to the given functions base URL
 // (e.g. "https://xyzcompany.supabase.co/functions/v1").
 func New(baseURL string, opts ...Option) *Client {
@@ -78,11 +88,12 @@ func New(baseURL string, opts ...Option) *Client {
 			opt(c)
 		}
 	}
-	if c.apiKey != "" {
+	if c.apiKey != "" || c.tracePropagation != nil {
 		c.httpClient = transport.NewHTTPClient(c.httpClient, transport.Config{
 			SupabaseURL:        c.url,
 			APIKey:             c.apiKey,
 			OmitAPIKeyAsBearer: true,
+			TracePropagation:   c.tracePropagation,
 		})
 	}
 	return c
@@ -115,10 +126,12 @@ func (c *Client) WithHTTPClientClone(hc *http.Client) *Client {
 	c.mu.RUnlock()
 
 	return &Client{
-		url:        baseURL,
-		headers:    headersCopy,
-		region:     region,
-		httpClient: hc,
+		url:              baseURL,
+		headers:          headersCopy,
+		region:           region,
+		httpClient:       hc,
+		apiKey:           c.apiKey,
+		tracePropagation: c.tracePropagation,
 	}
 }
 
@@ -349,7 +362,21 @@ func encodeMultipart(mb *MultipartBody) (*bytes.Buffer, string, error) {
 		}
 	}
 	for _, f := range mb.Files {
-		fw, err := w.CreateFormFile(f.FieldName, f.FileName)
+		var (
+			fw  io.Writer
+			err error
+		)
+		if f.ContentType != "" {
+			h := make(textproto.MIMEHeader)
+			h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
+				strings.NewReplacer(`\`, `\\`, `"`, `\"`).Replace(f.FieldName),
+				strings.NewReplacer(`\`, `\\`, `"`, `\"`).Replace(f.FileName),
+			))
+			h.Set("Content-Type", f.ContentType)
+			fw, err = w.CreatePart(h)
+		} else {
+			fw, err = w.CreateFormFile(f.FieldName, f.FileName)
+		}
 		if err != nil {
 			return nil, "", err
 		}

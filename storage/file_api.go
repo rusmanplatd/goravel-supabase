@@ -43,8 +43,9 @@ type TransformOptions struct {
 }
 
 type DownloadOptions struct {
-	VersionID string
-	Transform *TransformOptions
+	VersionID  string
+	Transform  *TransformOptions
+	CacheNonce string
 }
 
 type SignedUrlOptions struct {
@@ -73,9 +74,17 @@ type PublicUrlOptions struct {
 	VersionID  string
 }
 
+type CopyMetadataOverrides struct {
+	CacheControl    string `json:"cacheControl,omitempty"`
+	ContentEncoding string `json:"contentEncoding,omitempty"`
+	Mimetype        string `json:"mimetype,omitempty"`
+}
+
 type CopyMoveOptions struct {
 	DestinationBucket string
 	SourceVersionID   string
+	CopyMetadata      *bool
+	Metadata          *CopyMetadataOverrides
 }
 
 type DeleteObjectEntry struct {
@@ -158,16 +167,30 @@ func cleanPath(p string) string {
 	return strings.TrimLeft(p, "/")
 }
 
+func validateStoragePath(p string) (string, error) {
+	cleaned := strings.Trim(p, "/")
+	for _, seg := range strings.Split(cleaned, "/") {
+		if seg == ".." {
+			return "", &StorageError{Name: "StorageError", Message: "invalid storage path: path traversal '..' is not allowed"}
+		}
+	}
+	return cleaned, nil
+}
+
 func (f *FileApi) uploadOrUpdate(ctx context.Context, method, path string, body io.Reader, opts ...FileOptions) (*UploadResponse, error) {
 	if ctx == nil {
 		ctx = context.Background()
+	}
+	cp, err := validateStoragePath(path)
+	if err != nil {
+		return nil, err
 	}
 	var opt FileOptions
 	if len(opts) > 0 {
 		opt = opts[0]
 	}
 
-	fullURL := f.client.url + "/object/" + url.PathEscape(f.bucketID) + "/" + cleanPath(path)
+	fullURL := f.client.url + "/object/" + url.PathEscape(f.bucketID) + "/" + cp
 	req, err := http.NewRequestWithContext(ctx, method, fullURL, body)
 	if err != nil {
 		return nil, &StorageError{Name: "StorageError", Message: err.Error(), Err: err}
@@ -231,12 +254,16 @@ func (f *FileApi) UploadToSignedUrl(ctx context.Context, path, token string, bod
 	if ctx == nil {
 		ctx = context.Background()
 	}
+	cp, err := validateStoragePath(path)
+	if err != nil {
+		return nil, err
+	}
 	var opt FileOptions
 	if len(opts) > 0 {
 		opt = opts[0]
 	}
 
-	fullURL := f.client.url + "/object/upload/sign/" + url.PathEscape(f.bucketID) + "/" + cleanPath(path) + "?token=" + url.QueryEscape(token)
+	fullURL := f.client.url + "/object/upload/sign/" + url.PathEscape(f.bucketID) + "/" + cp + "?token=" + url.QueryEscape(token)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPut, fullURL, body)
 	if err != nil {
 		return nil, &StorageError{Name: "StorageError", Message: err.Error(), Err: err}
@@ -248,26 +275,46 @@ func (f *FileApi) UploadToSignedUrl(ctx context.Context, path, token string, bod
 	if opt.CacheControl != "" {
 		req.Header.Set("cache-control", "max-age="+opt.CacheControl)
 	}
+	if opt.ContentEncoding != "" {
+		req.Header.Set("Content-Encoding", opt.ContentEncoding)
+	}
 	if opt.Upsert {
 		req.Header.Set("x-upsert", "true")
+	}
+	if opt.Metadata != nil {
+		if mb, err := json.Marshal(opt.Metadata); err == nil {
+			req.Header.Set("x-metadata", base64.StdEncoding.EncodeToString(mb))
+		}
+	}
+	for k, v := range opt.Headers {
+		req.Header.Set(k, v)
 	}
 
 	resp, err := f.client.httpClient.Do(req)
 	if err != nil {
-		return nil, &StorageError{Name: "StorageUnknownError", Message: err.Error(), Err: err}
+		return nil, &StorageUnknownError{
+			StorageError:  &StorageError{Name: "StorageUnknownError", Message: err.Error(), Err: err},
+			OriginalError: err,
+		}
 	}
 	defer resp.Body.Close()
 
 	raw, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, &StorageError{Name: "StorageUnknownError", Message: err.Error(), Err: err}
+		return nil, &StorageUnknownError{
+			StorageError:  &StorageError{Name: "StorageUnknownError", Message: err.Error(), Err: err},
+			OriginalError: err,
+		}
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, decodeStorageApiError(raw, resp.StatusCode, resp.Status)
 	}
 	var out UploadResponse
 	_ = json.Unmarshal(raw, &out)
-	out.Path = cleanPath(path)
+	out.Path = cp
+	if out.FullPath == "" && out.Key != "" {
+		out.FullPath = out.Key
+	}
 	return &out, nil
 }
 
@@ -306,6 +353,9 @@ func (f *FileApi) downloadURL(path string, opts ...DownloadOptions) string {
 	if opt.VersionID != "" {
 		q.Set("versionId", opt.VersionID)
 	}
+	if opt.CacheNonce != "" {
+		q.Set("cacheNonce", opt.CacheNonce)
+	}
 	if enc := q.Encode(); enc != "" {
 		return base + "?" + enc
 	}
@@ -316,6 +366,9 @@ func (f *FileApi) downloadURL(path string, opts ...DownloadOptions) string {
 func (f *FileApi) DownloadStream(ctx context.Context, path string, opts ...DownloadOptions) (io.ReadCloser, http.Header, error) {
 	if ctx == nil {
 		ctx = context.Background()
+	}
+	if _, err := validateStoragePath(path); err != nil {
+		return nil, nil, err
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, f.downloadURL(path, opts...), nil)
 	if err != nil {
@@ -514,6 +567,12 @@ func (f *FileApi) Copy(ctx context.Context, fromPath, toPath string, opts ...Cop
 		if opts[0].SourceVersionID != "" {
 			body["sourceVersionId"] = opts[0].SourceVersionID
 		}
+		if opts[0].CopyMetadata != nil {
+			body["copyMetadata"] = *opts[0].CopyMetadata
+		}
+		if opts[0].Metadata != nil {
+			body["metadata"] = opts[0].Metadata
+		}
 	}
 	var resp struct {
 		Key string `json:"Key"`
@@ -536,6 +595,12 @@ func (f *FileApi) Move(ctx context.Context, fromPath, toPath string, opts ...Cop
 		}
 		if opts[0].SourceVersionID != "" {
 			body["sourceVersionId"] = opts[0].SourceVersionID
+		}
+		if opts[0].CopyMetadata != nil {
+			body["copyMetadata"] = *opts[0].CopyMetadata
+		}
+		if opts[0].Metadata != nil {
+			body["metadata"] = opts[0].Metadata
 		}
 	}
 	var resp struct {

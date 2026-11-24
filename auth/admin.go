@@ -6,14 +6,18 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"regexp"
+	"strconv"
+	"strings"
 )
 
 // AdminClient implements GoTrue Admin APIs requiring a service-role or secret key.
 type AdminClient struct {
-	client  *Client
-	MFA     *AdminMFAClient
-	OAuth   *AdminOAuthClient
-	Passkey *AdminPasskeyClient
+	client          *Client
+	MFA             *AdminMFAClient
+	OAuth           *AdminOAuthClient
+	Passkey         *AdminPasskeyClient
+	CustomProviders *AdminCustomProvidersClient
 }
 
 type AdminCreateUserParams struct {
@@ -46,8 +50,11 @@ type AdminListUsersParams struct {
 }
 
 type AdminListUsersResponse struct {
-	Users []User `json:"users"`
-	Aud   string `json:"aud,omitempty"`
+	Users    []User `json:"users"`
+	Aud      string `json:"aud,omitempty"`
+	NextPage int    `json:"next_page,omitempty"`
+	LastPage int    `json:"last_page,omitempty"`
+	Total    int    `json:"total,omitempty"`
 }
 
 type GenerateLinkParams struct {
@@ -84,6 +91,33 @@ func (a *AdminClient) GetUserById(ctx context.Context, uid string) (*User, error
 	return &user, nil
 }
 
+var linkPageRe = regexp.MustCompile(`[?&]page=(\d+)`)
+
+func parsePaginationHeaders(h http.Header) (nextPage, lastPage, total int) {
+	if rawTotal := h.Get("x-total-count"); rawTotal != "" {
+		total, _ = strconv.Atoi(strings.TrimSpace(rawTotal))
+	}
+	if link := h.Get("Link"); link != "" {
+		for _, part := range strings.Split(link, ",") {
+			part = strings.TrimSpace(part)
+			m := linkPageRe.FindStringSubmatch(part)
+			if len(m) != 2 {
+				continue
+			}
+			p, err := strconv.Atoi(m[1])
+			if err != nil {
+				continue
+			}
+			if strings.Contains(part, `rel="next"`) {
+				nextPage = p
+			} else if strings.Contains(part, `rel="last"`) {
+				lastPage = p
+			}
+		}
+	}
+	return nextPage, lastPage, total
+}
+
 func (a *AdminClient) ListUsers(ctx context.Context, params ...AdminListUsersParams) (*AdminListUsersResponse, error) {
 	q := url.Values{}
 	if len(params) > 0 {
@@ -99,9 +133,11 @@ func (a *AdminClient) ListUsers(ctx context.Context, params ...AdminListUsersPar
 		path += "?" + encoded
 	}
 	var resp AdminListUsersResponse
-	if err := a.client.doJSON(ctx, http.MethodGet, path, nil, "", &resp); err != nil {
+	hdrs, err := a.client.doJSONWithHeaders(ctx, http.MethodGet, path, nil, "", &resp)
+	if err != nil {
 		return nil, err
 	}
+	resp.NextPage, resp.LastPage, resp.Total = parsePaginationHeaders(hdrs)
 	return &resp, nil
 }
 
@@ -289,40 +325,69 @@ type CustomOAuthProvider struct {
 	Extra        map[string]any `json:"extra,omitempty"`
 }
 
-func (a *AdminClient) ListProviders(ctx context.Context) ([]CustomOAuthProvider, error) {
+// AdminCustomProvidersClient implements GoTrue Admin custom OAuth2/OIDC provider APIs.
+type AdminCustomProvidersClient struct {
+	client *Client
+}
+
+func (p *AdminCustomProvidersClient) ListProviders(ctx context.Context, providerType ...string) ([]CustomOAuthProvider, error) {
+	path := "/admin/custom-providers"
+	if len(providerType) > 0 && providerType[0] != "" {
+		path += "?type=" + url.QueryEscape(providerType[0])
+	}
 	var resp struct {
 		Providers []CustomOAuthProvider `json:"providers"`
 	}
-	if err := a.client.doJSON(ctx, http.MethodGet, "/admin/custom-providers", nil, "", &resp); err != nil {
+	if err := p.client.doJSON(ctx, http.MethodGet, path, nil, "", &resp); err != nil {
 		return nil, err
 	}
 	return resp.Providers, nil
 }
 
-func (a *AdminClient) CreateProvider(ctx context.Context, params map[string]any) (*CustomOAuthProvider, error) {
-	var p CustomOAuthProvider
-	if err := a.client.doJSON(ctx, http.MethodPost, "/admin/custom-providers", params, "", &p); err != nil {
+func (p *AdminCustomProvidersClient) CreateProvider(ctx context.Context, params map[string]any) (*CustomOAuthProvider, error) {
+	var rec CustomOAuthProvider
+	if err := p.client.doJSON(ctx, http.MethodPost, "/admin/custom-providers", params, "", &rec); err != nil {
 		return nil, err
 	}
-	return &p, nil
+	return &rec, nil
+}
+
+func (p *AdminCustomProvidersClient) GetProvider(ctx context.Context, identifier string) (*CustomOAuthProvider, error) {
+	var rec CustomOAuthProvider
+	if err := p.client.doJSON(ctx, http.MethodGet, "/admin/custom-providers/"+url.PathEscape(identifier), nil, "", &rec); err != nil {
+		return nil, err
+	}
+	return &rec, nil
+}
+
+func (p *AdminCustomProvidersClient) UpdateProvider(ctx context.Context, identifier string, params map[string]any) (*CustomOAuthProvider, error) {
+	var rec CustomOAuthProvider
+	if err := p.client.doJSON(ctx, http.MethodPut, "/admin/custom-providers/"+url.PathEscape(identifier), params, "", &rec); err != nil {
+		return nil, err
+	}
+	return &rec, nil
+}
+
+func (p *AdminCustomProvidersClient) DeleteProvider(ctx context.Context, identifier string) error {
+	return p.client.doJSON(ctx, http.MethodDelete, "/admin/custom-providers/"+url.PathEscape(identifier), nil, "", nil)
+}
+
+func (a *AdminClient) ListProviders(ctx context.Context, providerType ...string) ([]CustomOAuthProvider, error) {
+	return a.CustomProviders.ListProviders(ctx, providerType...)
+}
+
+func (a *AdminClient) CreateProvider(ctx context.Context, params map[string]any) (*CustomOAuthProvider, error) {
+	return a.CustomProviders.CreateProvider(ctx, params)
 }
 
 func (a *AdminClient) GetProvider(ctx context.Context, identifier string) (*CustomOAuthProvider, error) {
-	var p CustomOAuthProvider
-	if err := a.client.doJSON(ctx, http.MethodGet, "/admin/custom-providers/"+url.PathEscape(identifier), nil, "", &p); err != nil {
-		return nil, err
-	}
-	return &p, nil
+	return a.CustomProviders.GetProvider(ctx, identifier)
 }
 
 func (a *AdminClient) UpdateProvider(ctx context.Context, identifier string, params map[string]any) (*CustomOAuthProvider, error) {
-	var p CustomOAuthProvider
-	if err := a.client.doJSON(ctx, http.MethodPut, "/admin/custom-providers/"+url.PathEscape(identifier), params, "", &p); err != nil {
-		return nil, err
-	}
-	return &p, nil
+	return a.CustomProviders.UpdateProvider(ctx, identifier, params)
 }
 
 func (a *AdminClient) DeleteProvider(ctx context.Context, identifier string) error {
-	return a.client.doJSON(ctx, http.MethodDelete, "/admin/custom-providers/"+url.PathEscape(identifier), nil, "", nil)
+	return a.CustomProviders.DeleteProvider(ctx, identifier)
 }

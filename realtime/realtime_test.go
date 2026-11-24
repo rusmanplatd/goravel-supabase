@@ -178,10 +178,12 @@ func TestRealtimeEndToEndWebSocketAndHTTPSend(t *testing.T) {
 			}
 			isBin := typ == websocket.MessageBinary
 			if isBin {
-				// Echo back as kind 4 userBroadcast
+				// Echo back as kind 4 userBroadcast and send phx_reply ack
 				// Frame kind 3: [3, joinRefLen, refLen, topicLen, eventLen, metaLen, enc, ...]
 				jLen, rLen, tLen, eLen, mLen := int(data[1]), int(data[2]), int(data[3]), int(data[4]), int(data[5])
 				enc := data[6]
+				jRef := string(data[7 : 7+jLen])
+				ref := string(data[7+jLen : 7+jLen+rLen])
 				off := 7 + jLen + rLen
 				topic := data[off : off+tLen]
 				off += tLen
@@ -190,6 +192,15 @@ func TestRealtimeEndToEndWebSocketAndHTTPSend(t *testing.T) {
 				meta := data[off : off+mLen]
 				off += mLen
 				payload := data[off:]
+
+				_, ackReply, _ := s.Encode(realtime.Message{
+					JoinRef: jRef,
+					Ref:     ref,
+					Topic:   string(topic),
+					Event:   "phx_reply",
+					Payload: map[string]any{"status": "ok", "response": map[string]any{}},
+				})
+				_ = c.Write(ctx, websocket.MessageText, ackReply)
 
 				resp := append([]byte{realtime.KindUserBroadcast, byte(tLen), byte(eLen), byte(mLen), enc}, topic...)
 				resp = append(resp, ev...)

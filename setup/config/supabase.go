@@ -23,6 +23,7 @@ func init() {
 					"storage_driver":     config.Env("SUPABASE_AUTH_STORAGE_DRIVER", "database"),
 					"db_connection":      config.Env("SUPABASE_AUTH_DB_CONNECTION", ""),
 					"table":              config.Env("SUPABASE_AUTH_TABLE", "supabase_auth_sessions"),
+					"storage_key":        config.Env("SUPABASE_AUTH_STORAGE_KEY", ""),
 					"auto_migrate":       config.Env("SUPABASE_AUTH_AUTO_MIGRATE", true),
 					"persist_session":    true,
 					"auto_refresh_token": false,

@@ -51,30 +51,37 @@ type Lock interface {
 	Acquire(ctx context.Context, name string, fn func(ctx context.Context) error) error
 }
 
-// MutexLock is an in-process Lock backed by per-key sync.Mutex instances.
+// MutexLock is a context-aware in-process Lock backed by per-key channel semaphores.
 type MutexLock struct {
 	mu    sync.Mutex
-	locks map[string]*sync.Mutex
+	locks map[string]chan struct{}
 }
 
 // NewMutexLock creates a new MutexLock.
 func NewMutexLock() *MutexLock {
-	return &MutexLock{locks: make(map[string]*sync.Mutex)}
+	return &MutexLock{locks: make(map[string]chan struct{})}
 }
 
 func (l *MutexLock) Acquire(ctx context.Context, name string, fn func(ctx context.Context) error) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	l.mu.Lock()
 	if l.locks == nil {
-		l.locks = make(map[string]*sync.Mutex)
+		l.locks = make(map[string]chan struct{})
 	}
-	keyMu, ok := l.locks[name]
+	ch, ok := l.locks[name]
 	if !ok {
-		keyMu = &sync.Mutex{}
-		l.locks[name] = keyMu
+		ch = make(chan struct{}, 1)
+		l.locks[name] = ch
 	}
 	l.mu.Unlock()
 
-	keyMu.Lock()
-	defer keyMu.Unlock()
-	return fn(ctx)
+	select {
+	case ch <- struct{}{}:
+		defer func() { <-ch }()
+		return fn(ctx)
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }

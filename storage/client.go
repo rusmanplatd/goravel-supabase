@@ -134,20 +134,35 @@ func rewriteNewHostname(rawURL string) string {
 		return rawURL
 	}
 	host := u.Hostname()
-	if strings.HasSuffix(host, ".supabase.co") && !strings.HasSuffix(host, ".storage.supabase.co") {
-		newHost := strings.TrimSuffix(host, ".supabase.co") + ".storage.supabase.co"
-		if port := u.Port(); port != "" {
-			u.Host = newHost + ":" + port
-		} else {
-			u.Host = newHost
+	for _, tld := range []string{".supabase.co", ".supabase.in", ".supabase.red"} {
+		storageSuffix := ".storage" + tld
+		if strings.HasSuffix(host, tld) && !strings.HasSuffix(host, storageSuffix) {
+			newHost := strings.TrimSuffix(host, tld) + storageSuffix
+			if port := u.Port(); port != "" {
+				u.Host = newHost + ":" + port
+			} else {
+				u.Host = newHost
+			}
+			return strings.TrimRight(u.String(), "/")
 		}
-		return strings.TrimRight(u.String(), "/")
 	}
 	return rawURL
 }
 
 // URL returns the resolved storage base URL.
 func (c *Client) URL() string { return c.url }
+
+// SetHeader sets a client-level default header case-insensitively.
+func (c *Client) SetHeader(name, value string) {
+	for k := range c.headers {
+		if strings.EqualFold(k, name) {
+			delete(c.headers, k)
+		}
+	}
+	if value != "" {
+		c.headers[name] = value
+	}
+}
 
 // WithHTTPClientClone returns a shallow-derived Storage Client using hc.
 func (c *Client) WithHTTPClientClone(hc *http.Client) *Client {
@@ -223,13 +238,19 @@ func (c *Client) doJSON(ctx context.Context, method, path string, body any, out 
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return &StorageError{Name: "StorageUnknownError", Message: err.Error(), Err: err}
+		return &StorageUnknownError{
+			StorageError:  &StorageError{Name: "StorageUnknownError", Message: err.Error(), Err: err},
+			OriginalError: err,
+		}
 	}
 	defer resp.Body.Close()
 
 	raw, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &StorageError{Name: "StorageUnknownError", Message: err.Error(), Err: err}
+		return &StorageUnknownError{
+			StorageError:  &StorageError{Name: "StorageUnknownError", Message: err.Error(), Err: err},
+			OriginalError: err,
+		}
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return decodeStorageApiError(raw, resp.StatusCode, resp.Status)

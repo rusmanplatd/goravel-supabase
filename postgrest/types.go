@@ -98,9 +98,11 @@ type OrOptions struct {
 
 // QueryBuilderOptions configures per-request overrides on Client.From.
 type QueryBuilderOptions struct {
-	Headers    map[string]string
-	HTTPClient *http.Client
-	Timeout    time.Duration
+	Headers        map[string]string
+	HTTPClient     *http.Client
+	Timeout        time.Duration
+	URLLengthLimit int
+	Retry          *bool
 }
 
 // Response holds the raw PostgREST HTTP response metadata and body.
@@ -135,7 +137,7 @@ func Execute[T any](ctx context.Context, b *FilterBuilder) (T, *Response, error)
 	}
 	var out T
 	if err := json.Unmarshal(resp.Data, &out); err != nil {
-		return zero, resp, err
+		return zero, resp, &PostgrestError{Message: err.Error(), Status: resp.Status, StatusText: resp.StatusText}
 	}
 	return out, resp, nil
 }

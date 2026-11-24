@@ -34,6 +34,7 @@ type Client struct {
 	transport         Transport
 	serializer        *Serializer
 	heartbeatInterval time.Duration
+	timeout           time.Duration
 	reconnectAfterMs  func(tries int) time.Duration
 	disconnectDelay   time.Duration
 	accessTokenFn     func(ctx context.Context) (string, error)
@@ -45,6 +46,7 @@ type Client struct {
 	state               ConnectionState
 	accessToken         string
 	channels            []*Channel
+	sendBuffer          []Message
 	onHeartbeat         func(status string)
 	writeMu             sync.Mutex
 	refCounter          atomic.Uint64
@@ -105,6 +107,15 @@ func WithHeartbeatInterval(d time.Duration) Option {
 	}
 }
 
+// WithTimeout configures the default push/join reply timeout (default 10s).
+func WithTimeout(d time.Duration) Option {
+	return func(c *Client) {
+		if d > 0 {
+			c.timeout = d
+		}
+	}
+}
+
 func WithReconnectAfterMs(fn func(tries int) time.Duration) Option {
 	return func(c *Client) {
 		if fn != nil {
@@ -150,6 +161,7 @@ func New(endpointURL string, opts ...Option) *Client {
 		httpClient:        &http.Client{},
 		serializer:        NewSerializer(),
 		heartbeatInterval: 25 * time.Second,
+		timeout:           10 * time.Second,
 		reconnectAfterMs:  defaultReconnectBackoff,
 		logger:            transport.NopLogger{},
 		state:             StateClosed,
@@ -183,6 +195,15 @@ func (c *Client) ConnectionState() ConnectionState {
 	defer c.mu.RUnlock()
 	return c.state
 }
+
+// IsConnected reports whether the WebSocket connection is currently open.
+func (c *Client) IsConnected() bool { return c.ConnectionState() == StateOpen }
+
+// IsConnecting reports whether the WebSocket connection is currently dialing.
+func (c *Client) IsConnecting() bool { return c.ConnectionState() == StateConnecting }
+
+// IsDisconnecting reports whether the WebSocket connection is currently closing.
+func (c *Client) IsDisconnecting() bool { return c.ConnectionState() == StateClosing }
 
 func (c *Client) nextRef() string {
 	return strconv.FormatUint(c.refCounter.Add(1), 10)
@@ -274,17 +295,31 @@ func (c *Client) Connect(ctx context.Context) error {
 		return err
 	}
 
+	if c.accessTokenFn != nil {
+		if tok, err := c.accessTokenFn(ctx); err == nil && tok != "" {
+			c.mu.Lock()
+			c.accessToken = tok
+			c.mu.Unlock()
+		}
+	}
+
 	loopCtx, cancel := context.WithCancel(context.Background())
 	c.mu.Lock()
 	c.conn = conn
 	c.state = StateOpen
 	c.loopCancel = cancel
 	c.reconnectTries = 0
+	buffered := c.sendBuffer
+	c.sendBuffer = nil
 	c.mu.Unlock()
 
 	c.loopWg.Add(2)
 	go c.readLoop(loopCtx, conn)
 	go c.heartbeatLoop(loopCtx)
+
+	for _, msg := range buffered {
+		_ = c.push(ctx, msg)
+	}
 
 	return nil
 }
@@ -333,14 +368,16 @@ func (c *Client) disconnectNow(closeCode int) error {
 }
 
 func (c *Client) push(ctx context.Context, msg Message) error {
-	c.mu.RLock()
+	c.mu.Lock()
 	conn := c.conn
 	state := c.state
 	vsn := c.vsn
-	c.mu.RUnlock()
 	if conn == nil || state != StateOpen {
+		c.sendBuffer = append(c.sendBuffer, msg)
+		c.mu.Unlock()
 		return nil
 	}
+	c.mu.Unlock()
 	var (
 		isBin bool
 		data  []byte
@@ -485,13 +522,23 @@ func (c *Client) heartbeatLoop(ctx context.Context) {
 				continue
 			}
 			timedOut := c.pendingHeartbeatRef != ""
+			deadConn := c.conn
 			ref := c.nextRef()
 			c.pendingHeartbeatRef = ref
 			cb := c.onHeartbeat
 			c.mu.Unlock()
 
-			if timedOut && cb != nil {
-				cb("timeout")
+			if timedOut {
+				if cb != nil {
+					cb("timeout")
+				}
+				c.mu.Lock()
+				c.pendingHeartbeatRef = ""
+				c.mu.Unlock()
+				if deadConn != nil {
+					_ = deadConn.Close(1000, "heartbeat timeout")
+				}
+				return
 			}
 			_ = c.push(ctx, Message{
 				Ref:     ref,
@@ -502,22 +549,42 @@ func (c *Client) heartbeatLoop(ctx context.Context) {
 			if cb != nil {
 				cb("sent")
 			}
+			if c.accessTokenFn != nil {
+				if tok, err := c.accessTokenFn(ctx); err == nil && tok != "" {
+					c.mu.RLock()
+					cur := c.accessToken
+					c.mu.RUnlock()
+					if tok != cur {
+						c.SetAuth(tok)
+					}
+				}
+			}
 		}
 	}
 }
 
-// Channel creates (or registers) a new RealtimeChannel on this client.
+// Channel returns an existing channel for the same normalized topic or registers a new one.
 func (c *Client) Channel(name string, cfg ...ChannelConfig) *Channel {
 	var cc ChannelConfig
 	if len(cfg) > 0 {
 		cc = cfg[0]
 	}
-	ch := newChannel(c, name, cc)
+	topic := name
+	if !strings.HasPrefix(topic, "realtime:") {
+		topic = "realtime:" + topic
+	}
 	c.mu.Lock()
 	if c.disconnectTimer != nil {
 		c.disconnectTimer.Stop()
 		c.disconnectTimer = nil
 	}
+	for _, existing := range c.channels {
+		if existing.topic == topic {
+			c.mu.Unlock()
+			return existing
+		}
+	}
+	ch := newChannel(c, name, cc)
 	c.channels = append(c.channels, ch)
 	c.mu.Unlock()
 	return ch

@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 // ChannelState represents the lifecycle state of a RealtimeChannel.
@@ -56,10 +57,11 @@ type ChannelConfig struct {
 
 // PostgresChangesFilter specifies a postgres_changes subscription binding.
 type PostgresChangesFilter struct {
-	Event  string `json:"event"`            // "*", "INSERT", "UPDATE", "DELETE"
-	Schema string `json:"schema,omitempty"` // e.g. "public"
-	Table  string `json:"table,omitempty"`
-	Filter string `json:"filter,omitempty"`
+	Event  string   `json:"event"`            // "*", "INSERT", "UPDATE", "DELETE"
+	Schema string   `json:"schema,omitempty"` // e.g. "public"
+	Table  string   `json:"table,omitempty"`
+	Filter string   `json:"filter,omitempty"`
+	Select []string `json:"select,omitempty"`
 }
 
 // SendPayload is sent via Channel.Send or Channel.HTTPSend.
@@ -82,6 +84,7 @@ type channelBinding struct {
 	kind           string // "broadcast", "presence", "postgres_changes", "system"
 	event          string
 	postgresFilter *PostgresChangesFilter
+	serverID       int64
 	callback       func(payload map[string]any)
 }
 
@@ -91,12 +94,14 @@ type Channel struct {
 	topic  string
 	config ChannelConfig
 
-	mu          sync.RWMutex
-	state       ChannelState
-	joinRef     string
-	bindings    []channelBinding
-	presence    *RealtimePresence
-	subscribeCb func(status SubscribeStatus, err error)
+	mu             sync.RWMutex
+	state          ChannelState
+	joinRef        string
+	joinTimer      *time.Timer
+	pendingReplies map[string]chan *Message
+	bindings       []channelBinding
+	presence       *RealtimePresence
+	subscribeCb    func(status SubscribeStatus, err error)
 }
 
 func newChannel(client *Client, name string, cfg ChannelConfig) *Channel {
@@ -105,11 +110,12 @@ func newChannel(client *Client, name string, cfg ChannelConfig) *Channel {
 		topic = "realtime:" + topic
 	}
 	return &Channel{
-		client:   client,
-		topic:    topic,
-		config:   cfg,
-		state:    ChannelClosed,
-		presence: newRealtimePresence(),
+		client:         client,
+		topic:          topic,
+		config:         cfg,
+		state:          ChannelClosed,
+		pendingReplies: make(map[string]chan *Message),
+		presence:       newRealtimePresence(),
 	}
 }
 
@@ -185,6 +191,9 @@ func (ch *Channel) Subscribe(ctx context.Context, cb ...func(status SubscribeSta
 	if ctx == nil {
 		ctx = context.Background()
 	}
+	if len(ch.config.Broadcast.Replay) > 0 && !ch.config.Private {
+		return errors.New("realtime: broadcast replay is only supported on private channels")
+	}
 	if len(cb) > 0 && cb[0] != nil {
 		ch.mu.Lock()
 		ch.subscribeCb = cb[0]
@@ -206,6 +215,25 @@ func (ch *Channel) sendJoin(ctx context.Context) error {
 	ch.mu.Lock()
 	ch.state = ChannelJoining
 	ch.joinRef = ref
+	if ch.joinTimer != nil {
+		ch.joinTimer.Stop()
+	}
+	timeout := ch.client.timeout
+	if timeout > 0 {
+		ch.joinTimer = time.AfterFunc(timeout, func() {
+			ch.mu.Lock()
+			if ch.state == ChannelJoining && ch.joinRef == ref {
+				ch.state = ChannelErrored
+				cb := ch.subscribeCb
+				ch.mu.Unlock()
+				if cb != nil {
+					cb(SubscribeTimedOut, context.DeadlineExceeded)
+				}
+				return
+			}
+			ch.mu.Unlock()
+		})
+	}
 	var pgChanges []PostgresChangesFilter
 	for _, b := range ch.bindings {
 		if b.kind == "postgres_changes" && b.postgresFilter != nil {
@@ -247,6 +275,10 @@ func (ch *Channel) Unsubscribe(ctx context.Context) error {
 	}
 	ch.mu.Lock()
 	joinRef := ch.joinRef
+	if ch.joinTimer != nil {
+		ch.joinTimer.Stop()
+		ch.joinTimer = nil
+	}
 	ch.state = ChannelLeaving
 	cb := ch.subscribeCb
 	ch.mu.Unlock()
@@ -302,13 +334,50 @@ func (ch *Channel) Send(ctx context.Context, msg SendPayload) error {
 		payload[k] = v
 	}
 
-	return ch.client.push(ctx, Message{
+	ref := ch.client.nextRef()
+	needAck := msg.Type == BroadcastEvent && ch.config.Broadcast.Ack
+	var replyCh chan *Message
+	if needAck {
+		replyCh = make(chan *Message, 1)
+		ch.mu.Lock()
+		ch.pendingReplies[ref] = replyCh
+		ch.mu.Unlock()
+		defer func() {
+			ch.mu.Lock()
+			delete(ch.pendingReplies, ref)
+			ch.mu.Unlock()
+		}()
+	}
+
+	if err := ch.client.push(ctx, Message{
 		JoinRef: joinRef,
-		Ref:     ch.client.nextRef(),
+		Ref:     ref,
 		Topic:   ch.topic,
 		Event:   msg.Type,
 		Payload: payload,
-	})
+	}); err != nil {
+		return err
+	}
+
+	if needAck {
+		timeout := ch.client.timeout
+		if timeout <= 0 {
+			timeout = 10 * time.Second
+		}
+		timer := time.NewTimer(timeout)
+		defer timer.Stop()
+		select {
+		case reply := <-replyCh:
+			if status, _ := reply.Payload["status"].(string); status != "ok" {
+				return fmt.Errorf("realtime: broadcast ack error: %v", reply.Payload["response"])
+			}
+		case <-timer.C:
+			return context.DeadlineExceeded
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+	return nil
 }
 
 // HTTPSend dispatches a broadcast message via the Realtime REST endpoint
@@ -453,11 +522,22 @@ func (ch *Channel) handleMessage(msg *Message) {
 	case "phx_reply":
 		status, _ := msg.Payload["status"].(string)
 		ch.mu.Lock()
+		if replyCh, waiting := ch.pendingReplies[msg.Ref]; waiting {
+			select {
+			case replyCh <- msg:
+			default:
+			}
+		}
 		isJoinReply := msg.Ref != "" && msg.Ref == ch.joinRef
 		cb := ch.subscribeCb
 		if isJoinReply {
+			if ch.joinTimer != nil {
+				ch.joinTimer.Stop()
+				ch.joinTimer = nil
+			}
 			if status == "ok" {
 				ch.state = ChannelJoined
+				ch.bindPostgresIDsLocked(msg.Payload)
 			} else {
 				ch.state = ChannelErrored
 			}
@@ -470,6 +550,27 @@ func (ch *Channel) handleMessage(msg *Message) {
 				cb(SubscribeChannelError, fmt.Errorf("realtime: join failed: %v", msg.Payload["response"]))
 			}
 		}
+
+	case "phx_error":
+		ch.mu.Lock()
+		ch.state = ChannelErrored
+		cb := ch.subscribeCb
+		ch.mu.Unlock()
+		if cb != nil {
+			cb(SubscribeChannelError, fmt.Errorf("realtime: channel error: %v", msg.Payload))
+		}
+
+	case "phx_close":
+		ch.mu.Lock()
+		ch.state = ChannelClosed
+		cb := ch.subscribeCb
+		ch.mu.Unlock()
+		if cb != nil {
+			cb(SubscribeClosed, nil)
+		}
+
+	case "system":
+		ch.dispatchBindings("system", "", msg.Payload)
 
 	case BroadcastEvent:
 		userEvent, _ := msg.Payload["event"].(string)
@@ -488,9 +589,117 @@ func (ch *Channel) handleMessage(msg *Message) {
 		}
 
 	case "postgres_changes":
-		data, _ := msg.Payload["data"].(map[string]any)
-		evType, _ := data["type"].(string)
-		ch.dispatchBindings("postgres_changes", evType, msg.Payload)
+		ch.dispatchPostgresChanges(msg.Payload)
+	}
+}
+
+func (ch *Channel) bindPostgresIDsLocked(payload map[string]any) {
+	resp, ok := payload["response"].(map[string]any)
+	if !ok {
+		return
+	}
+	rawList, ok := resp["postgres_changes"].([]any)
+	if !ok {
+		return
+	}
+	for _, item := range rawList {
+		m, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+		idFloat, ok := m["id"].(float64)
+		if !ok {
+			continue
+		}
+		id := int64(idFloat)
+		ev, _ := m["event"].(string)
+		schema, _ := m["schema"].(string)
+		table, _ := m["table"].(string)
+		filter, _ := m["filter"].(string)
+		for i := range ch.bindings {
+			b := &ch.bindings[i]
+			if b.kind != "postgres_changes" || b.postgresFilter == nil || b.serverID != 0 {
+				continue
+			}
+			f := b.postgresFilter
+			if strings.EqualFold(f.Event, ev) && f.Schema == schema && f.Table == table && f.Filter == filter {
+				b.serverID = id
+				break
+			}
+		}
+	}
+}
+
+func (ch *Channel) dispatchPostgresChanges(payload map[string]any) {
+	data, _ := payload["data"].(map[string]any)
+	evType, _ := data["type"].(string)
+
+	// Convert typed Postgres columns in record/old_record if columns metadata is present
+	enriched := make(map[string]any, len(payload))
+	for k, v := range payload {
+		enriched[k] = v
+	}
+	if data != nil {
+		var cols []map[string]any
+		if rawCols, ok := data["columns"].([]any); ok {
+			for _, rc := range rawCols {
+				if cm, ok := rc.(map[string]any); ok {
+					cols = append(cols, cm)
+				}
+			}
+		}
+		if rec, ok := data["record"].(map[string]any); ok {
+			enriched["new"] = ConvertChangeData(cols, rec)
+		}
+		if oldRec, ok := data["old_record"].(map[string]any); ok {
+			enriched["old"] = ConvertChangeData(cols, oldRec)
+		}
+		if schema, ok := data["schema"].(string); ok {
+			enriched["schema"] = schema
+		}
+		if table, ok := data["table"].(string); ok {
+			enriched["table"] = table
+		}
+		if ts, ok := data["commit_timestamp"].(string); ok {
+			enriched["commit_timestamp"] = ts
+		}
+		if evType != "" {
+			enriched["eventType"] = evType
+		}
+	}
+
+	idSet := make(map[int64]struct{})
+	if rawIDs, ok := payload["ids"].([]any); ok {
+		for _, rid := range rawIDs {
+			if f, ok := rid.(float64); ok {
+				idSet[int64(f)] = struct{}{}
+			}
+		}
+	}
+
+	ch.mu.RLock()
+	var matched []func(map[string]any)
+	for _, b := range ch.bindings {
+		if b.kind != "postgres_changes" {
+			continue
+		}
+		if len(idSet) > 0 && b.serverID != 0 {
+			if _, ok := idSet[b.serverID]; !ok {
+				continue
+			}
+			matched = append(matched, b.callback)
+			continue
+		}
+		if b.event == "*" || b.event == "" || strings.EqualFold(b.event, evType) {
+			matched = append(matched, b.callback)
+		}
+	}
+	ch.mu.RUnlock()
+
+	for _, fn := range matched {
+		if fn != nil {
+			fn(enriched)
+		}
 	}
 }
 

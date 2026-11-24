@@ -132,12 +132,19 @@ func (c *Client) WithHTTPClientClone(hc *http.Client) *Client {
 
 // From creates a QueryBuilder for the given table or view.
 func (c *Client) From(relation string, opts ...QueryBuilderOptions) *QueryBuilder {
-	rawURL := c.url + "/" + strings.TrimLeft(relation, "/")
+	trimmed := strings.TrimSpace(relation)
+	var buildErr error
+	if trimmed == "" {
+		buildErr = &PostgrestError{Message: "relation name must not be empty"}
+	}
+	rawURL := c.url + "/" + strings.TrimLeft(trimmed, "/")
 	u, _ := url.Parse(rawURL)
 
 	headers := c.headers.Clone()
 	hc := c.httpClient
 	timeout := c.timeout
+	urlLimit := c.urlLengthLimit
+	retry := c.retry
 
 	if len(opts) > 0 {
 		opt := opts[0]
@@ -153,6 +160,12 @@ func (c *Client) From(relation string, opts ...QueryBuilderOptions) *QueryBuilde
 		if opt.Timeout > 0 {
 			timeout = opt.Timeout
 		}
+		if opt.URLLengthLimit > 0 {
+			urlLimit = opt.URLLengthLimit
+		}
+		if opt.Retry != nil {
+			retry = *opt.Retry
+		}
 	}
 
 	return &QueryBuilder{
@@ -161,9 +174,10 @@ func (c *Client) From(relation string, opts ...QueryBuilderOptions) *QueryBuilde
 		schema:         c.schema,
 		httpClient:     hc,
 		timeout:        timeout,
-		urlLengthLimit: c.urlLengthLimit,
-		retry:          c.retry,
+		urlLengthLimit: urlLimit,
+		retry:          retry,
 		retryBaseDelay: c.retryBaseDelay,
+		buildErr:       buildErr,
 	}
 }
 

@@ -19,6 +19,7 @@ type QueryBuilder struct {
 	urlLengthLimit int
 	retry          bool
 	retryBaseDelay time.Duration
+	buildErr       error
 }
 
 func (qb *QueryBuilder) cloneURL() *url.URL {
@@ -78,6 +79,7 @@ func (qb *QueryBuilder) Select(columns string, opts ...SelectOptions) *FilterBui
 		urlLengthLimit: qb.urlLengthLimit,
 		retry:          qb.retry,
 		retryBaseDelay: qb.retryBaseDelay,
+		buildErr:       qb.buildErr,
 	}
 }
 
@@ -115,6 +117,7 @@ func (qb *QueryBuilder) Insert(values any, opts ...InsertOptions) *FilterBuilder
 		urlLengthLimit: qb.urlLengthLimit,
 		retry:          qb.retry,
 		retryBaseDelay: qb.retryBaseDelay,
+		buildErr:       qb.buildErr,
 	}
 }
 
@@ -159,6 +162,7 @@ func (qb *QueryBuilder) Upsert(values any, opts ...UpsertOptions) *FilterBuilder
 		urlLengthLimit: qb.urlLengthLimit,
 		retry:          qb.retry,
 		retryBaseDelay: qb.retryBaseDelay,
+		buildErr:       qb.buildErr,
 	}
 }
 
@@ -186,6 +190,7 @@ func (qb *QueryBuilder) Update(values any, opts ...UpdateOptions) *FilterBuilder
 		urlLengthLimit: qb.urlLengthLimit,
 		retry:          qb.retry,
 		retryBaseDelay: qb.retryBaseDelay,
+		buildErr:       qb.buildErr,
 	}
 }
 
@@ -212,6 +217,7 @@ func (qb *QueryBuilder) Delete(opts ...DeleteOptions) *FilterBuilder {
 		urlLengthLimit: qb.urlLengthLimit,
 		retry:          qb.retry,
 		retryBaseDelay: qb.retryBaseDelay,
+		buildErr:       qb.buildErr,
 	}
 }
 

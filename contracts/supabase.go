@@ -39,5 +39,9 @@ type Supabase interface {
 	WithToken(token string) Supabase
 	WithAccessToken(fn func(ctx context.Context) (string, error)) Supabase
 	WithContext(ctx context.Context) Supabase
+	Context() context.Context
 	WithSchema(schema string) Supabase
+
+	// Lifecycle
+	Close() error
 }

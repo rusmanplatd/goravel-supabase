@@ -359,7 +359,7 @@ func TestSessionJWKSAutoRefreshIdentitiesMFAAndOAuthPasskey(t *testing.T) {
 	if _, err := c.MFA.RecoveryCodes.Regenerate(ctx); err != nil {
 		t.Fatal(err)
 	}
-	if err := c.MFA.RecoveryCodes.Unenroll(ctx); err != nil {
+	if _, err := c.MFA.RecoveryCodes.Unenroll(ctx); err != nil {
 		t.Fatal(err)
 	}
 

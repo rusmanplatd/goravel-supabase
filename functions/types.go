@@ -31,9 +31,10 @@ const (
 
 // MultipartFile represents a file part in a MultipartBody payload.
 type MultipartFile struct {
-	FieldName string
-	FileName  string
-	Reader    io.Reader
+	FieldName   string
+	FileName    string
+	ContentType string
+	Reader      io.Reader
 }
 
 // MultipartBody represents a multipart/form-data request payload.

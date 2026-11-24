@@ -2,6 +2,7 @@ package supabase_test
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"sync"
 	"testing"
@@ -13,14 +14,15 @@ import (
 
 type fakeDB struct {
 	db.DB
-	mu         sync.Mutex
-	store      map[string]string
-	statements []string
-	lastSelect string
-	lastInsert string
-	lastUpdate string
-	lastDelete string
-	connName   string
+	mu           sync.Mutex
+	store        map[string]string
+	statements   []string
+	failStmtOnce bool
+	lastSelect   string
+	lastInsert   string
+	lastUpdate   string
+	lastDelete   string
+	connName     string
 }
 
 func newFakeDB() *fakeDB {
@@ -39,6 +41,10 @@ func (f *fakeDB) WithContext(ctx context.Context) db.DB { return f }
 func (f *fakeDB) Statement(sql string, args ...any) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
+	if f.failStmtOnce {
+		f.failStmtOnce = false
+		return errors.New("transient db error")
+	}
 	f.statements = append(f.statements, sql)
 	return nil
 }
@@ -101,7 +107,7 @@ func TestDBStorageDialectsAndCRUD(t *testing.T) {
 		{supabase.DialectPostgres, "$1", "ON CONFLICT (key) DO UPDATE", "$1"},
 		{supabase.DialectMySQL, "?", "ON DUPLICATE KEY UPDATE", "?"},
 		{supabase.DialectSQLite, "?", "ON CONFLICT (key) DO UPDATE", "?"},
-		{supabase.DialectSQLServer, "@p1", "", "@p1"},
+		{supabase.DialectSQLServer, "@p1", "MERGE ", "@p1"},
 	}
 
 	for _, tc := range dialects {
@@ -151,5 +157,33 @@ func TestDBStorageDialectsAndCRUD(t *testing.T) {
 				t.Fatalf("GetItem after delete = %q, %v", got, err)
 			}
 		})
+	}
+}
+
+func TestDBStorageTransientEnsureRecoveryAndValidation(t *testing.T) {
+	// Invalid table name rejected
+	if _, err := supabase.NewDBStorage(newFakeDB(), supabase.DBStorageOptions{Table: "users; DROP TABLE x"}); err == nil {
+		t.Fatal("expected error for SQL-injection table name")
+	}
+	// NormalizeDialect coverage
+	if supabase.NormalizeDialect("pgx") != supabase.DialectPostgres ||
+		supabase.NormalizeDialect("mariadb") != supabase.DialectMySQL ||
+		supabase.NormalizeDialect("mssql") != supabase.DialectSQLServer ||
+		supabase.NormalizeDialect("unknown") != supabase.DialectSQLite {
+		t.Fatal("NormalizeDialect mapping mismatch")
+	}
+
+	// Transient EnsureTable failure recovers on next SetItem
+	fdb := newFakeDB()
+	fdb.failStmtOnce = true
+	st, err := supabase.NewDBStorage(fdb, supabase.DBStorageOptions{AutoMigrate: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := st.SetItem(context.Background(), "k", "v"); err == nil {
+		t.Fatal("expected first SetItem to fail on transient EnsureTable error")
+	}
+	if err := st.SetItem(context.Background(), "k", "v"); err != nil {
+		t.Fatalf("expected second SetItem to recover after transient EnsureTable error, got %v", err)
 	}
 }

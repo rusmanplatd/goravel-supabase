@@ -22,7 +22,8 @@ import (
 	"time"
 )
 
-type jwkKey struct {
+// JWK represents a JSON Web Key used for local asymmetric JWT verification.
+type JWK struct {
 	Kty string `json:"kty"`
 	Kid string `json:"kid"`
 	Alg string `json:"alg"`
@@ -30,15 +31,19 @@ type jwkKey struct {
 	// RSA
 	N string `json:"n"`
 	E string `json:"e"`
-	// EC
+	// EC / OKP
 	Crv string `json:"crv"`
 	X   string `json:"x"`
 	Y   string `json:"y"`
 }
 
-type jwksDocument struct {
-	Keys []jwkKey `json:"keys"`
+// JWKS represents a JSON Web Key Set document.
+type JWKS struct {
+	Keys []JWK `json:"keys"`
 }
+
+type jwkKey = JWK
+type jwksDocument = JWKS
 
 type jwksCache struct {
 	mu        sync.RWMutex

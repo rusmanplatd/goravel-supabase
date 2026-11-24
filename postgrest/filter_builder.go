@@ -127,14 +127,18 @@ func (fb *FilterBuilder) IsDistinct(column string, value any) *FilterBuilder {
 }
 
 func formatInValues(values []any) string {
-	cleaned := make([]string, len(values))
-	for i, v := range values {
+	seen := make(map[string]struct{}, len(values))
+	cleaned := make([]string, 0, len(values))
+	for _, v := range values {
 		s := fmt.Sprint(v)
 		if postgrestReservedCharsRe.MatchString(s) {
-			cleaned[i] = `"` + s + `"`
-		} else {
-			cleaned[i] = s
+			s = `"` + s + `"`
 		}
+		if _, dup := seen[s]; dup {
+			continue
+		}
+		seen[s] = struct{}{}
+		cleaned = append(cleaned, s)
 	}
 	return "(" + strings.Join(cleaned, ",") + ")"
 }
@@ -244,6 +248,9 @@ func (fb *FilterBuilder) TextSearch(column, query string, opts ...TextSearchOpti
 
 func (fb *FilterBuilder) Match(query map[string]any) *FilterBuilder {
 	for k, v := range query {
+		if v == nil {
+			continue
+		}
 		fb.appendParam(k, fmt.Sprintf("eq.%v", v))
 	}
 	return fb
@@ -568,6 +575,21 @@ func (fb *FilterBuilder) ExecuteRaw(ctx context.Context) (*Response, error) {
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		// PostgREST #295 workaround: normalize 404 with empty array `[]` or empty body.
+		if resp.StatusCode == http.StatusNotFound {
+			trimmed := strings.TrimSpace(string(raw))
+			if trimmed == "[]" {
+				pgResp.Status = http.StatusOK
+				pgResp.StatusText = http.StatusText(http.StatusOK)
+				return pgResp, nil
+			}
+			if trimmed == "" {
+				pgResp.Status = http.StatusNoContent
+				pgResp.StatusText = http.StatusText(http.StatusNoContent)
+				pgResp.Data = nil
+				return pgResp, nil
+			}
+		}
 		pgErr := decodePostgrestError(raw, resp.StatusCode, resp.Status)
 		if urlTooLong && pgErr.Hint == "" {
 			pgErr.Hint = fmt.Sprintf("Request URL length (%d) exceeds configured limit (%d); consider using views or an RPC function for large filter lists.", len(rawURL), fb.urlLengthLimit)

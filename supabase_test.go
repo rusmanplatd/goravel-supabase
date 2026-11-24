@@ -43,6 +43,26 @@ func (c *mapConfig) GetBool(path string, defaultValue ...bool) bool {
 	return false
 }
 
+func (c *mapConfig) GetInt(path string, defaultValue ...int) int {
+	if v, ok := c.data[path].(int); ok {
+		return v
+	}
+	if len(defaultValue) > 0 {
+		return defaultValue[0]
+	}
+	return 0
+}
+
+func (c *mapConfig) Get(path string, defaultValue ...any) any {
+	if v, ok := c.data[path]; ok {
+		return v
+	}
+	if len(defaultValue) > 0 {
+		return defaultValue[0]
+	}
+	return nil
+}
+
 func TestServiceProviderAndMultiConnectionManager(t *testing.T) {
 	sp := &supabase.ServiceProvider{}
 	rel := sp.Relationship()
@@ -58,15 +78,23 @@ func TestServiceProviderAndMultiConnectionManager(t *testing.T) {
 	}
 
 	cfg := &mapConfig{data: map[string]any{
-		"supabase.default":                                   "default",
-		"supabase.connections.default.url":                   "https://default.supabase.co",
-		"supabase.connections.default.key":                   "sb_publishable_default",
-		"supabase.connections.default.auth.storage_driver":   "database",
-		"supabase.connections.analytics.url":                 "https://analytics.supabase.co",
-		"supabase.connections.analytics.key":                 "sb_publishable_analytics",
-		"supabase.connections.analytics.auth.storage_driver": "memory",
-		"database.default":                                   "postgres",
-		"database.connections.postgres.driver":               "postgres",
+		"supabase.default":                                            "default",
+		"supabase.connections.default.url":                            "https://default.supabase.co",
+		"supabase.connections.default.key":                            "sb_publishable_default",
+		"supabase.connections.default.auth.storage_driver":            "database",
+		"supabase.connections.default.db.timeout":                     5000,
+		"supabase.connections.default.db.retry":                       true,
+		"supabase.connections.default.db.url_length_limit":            4096,
+		"supabase.connections.default.headers":                        map[string]string{"X-App": "goravel"},
+		"supabase.connections.default.realtime.heartbeat_interval":    15000,
+		"supabase.connections.default.realtime.vsn":                   "2.0.0",
+		"supabase.connections.default.trace_propagation.enabled":      true,
+		"supabase.connections.default.trace_propagation.targets":      []string{"default.supabase.co"},
+		"supabase.connections.analytics.url":                          "https://analytics.supabase.co",
+		"supabase.connections.analytics.key":                          "sb_publishable_analytics",
+		"supabase.connections.analytics.auth.storage_driver":          "memory",
+		"database.default":                                            "postgres",
+		"database.connections.postgres.driver":                        "postgres",
 	}}
 
 	fdb := newFakeDB()
@@ -98,5 +126,9 @@ func TestServiceProviderAndMultiConnectionManager(t *testing.T) {
 	scoped := defConn.WithToken("user-jwt").WithSchema("custom")
 	if scoped == defConn {
 		t.Fatal("expected derived client")
+	}
+
+	if err := mgr.Close(); err != nil {
+		t.Fatalf("mgr.Close() error: %v", err)
 	}
 }

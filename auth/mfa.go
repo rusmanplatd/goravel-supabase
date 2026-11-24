@@ -4,12 +4,100 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 // MFAClient provides Multi-Factor Authentication operations.
 type MFAClient struct {
 	client        *Client
 	RecoveryCodes *RecoveryCodesClient
+	WebAuthn      *MFAWebAuthnClient
+}
+
+// MFAWebAuthnClient provides WebAuthn MFA registration and authentication helpers.
+type MFAWebAuthnClient struct {
+	mfa *MFAClient
+}
+
+type MFAWebAuthnRegisterParams struct {
+	FriendlyName string
+	RPID         string
+	RPOrigins    []string
+	Ceremony     func(ctx context.Context, opts map[string]any) (map[string]any, error)
+}
+
+type MFAWebAuthnAuthenticateParams struct {
+	FactorID  string
+	RPID      string
+	RPOrigins []string
+	Ceremony  func(ctx context.Context, opts map[string]any) (map[string]any, error)
+}
+
+func (w *MFAWebAuthnClient) Register(ctx context.Context, params MFAWebAuthnRegisterParams) (*Session, error) {
+	if params.Ceremony == nil {
+		return nil, ErrUnsupported
+	}
+	enrolled, err := w.mfa.Enroll(ctx, MFAEnrollParams{
+		FactorType:   "webauthn",
+		FriendlyName: params.FriendlyName,
+	})
+	if err != nil {
+		return nil, err
+	}
+	ch, err := w.mfa.Challenge(ctx, MFAChallengeParams{
+		FactorID: enrolled.ID,
+		WebAuthn: map[string]any{
+			"rpId":      params.RPID,
+			"rpOrigins": params.RPOrigins,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	cred, err := params.Ceremony(ctx, ch.WebAuthn)
+	if err != nil {
+		return nil, err
+	}
+	return w.mfa.Verify(ctx, MFAVerifyParams{
+		FactorID:    enrolled.ID,
+		ChallengeID: ch.ID,
+		WebAuthn: map[string]any{
+			"rpId":                params.RPID,
+			"rpOrigins":           params.RPOrigins,
+			"type":                "create",
+			"credential_response": cred,
+		},
+	})
+}
+
+func (w *MFAWebAuthnClient) Authenticate(ctx context.Context, params MFAWebAuthnAuthenticateParams) (*Session, error) {
+	if params.Ceremony == nil {
+		return nil, ErrUnsupported
+	}
+	ch, err := w.mfa.Challenge(ctx, MFAChallengeParams{
+		FactorID: params.FactorID,
+		WebAuthn: map[string]any{
+			"rpId":      params.RPID,
+			"rpOrigins": params.RPOrigins,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	cred, err := params.Ceremony(ctx, ch.WebAuthn)
+	if err != nil {
+		return nil, err
+	}
+	return w.mfa.Verify(ctx, MFAVerifyParams{
+		FactorID:    params.FactorID,
+		ChallengeID: ch.ID,
+		WebAuthn: map[string]any{
+			"rpId":                params.RPID,
+			"rpOrigins":           params.RPOrigins,
+			"type":                "get",
+			"credential_response": cred,
+		},
+	})
 }
 
 type MFAEnrollParams struct {
@@ -32,20 +120,23 @@ type MFAEnrollResponse struct {
 }
 
 type MFAChallengeParams struct {
-	FactorID string `json:"-"`
-	Channel  string `json:"channel,omitempty"`
+	FactorID string         `json:"-"`
+	Channel  string         `json:"channel,omitempty"`
+	WebAuthn map[string]any `json:"webauthn,omitempty"`
 }
 
 type MFAChallengeResponse struct {
-	ID        string `json:"id"`
-	Type      string `json:"type"`
-	ExpiresAt int64  `json:"expires_at"`
+	ID        string         `json:"id"`
+	Type      string         `json:"type"`
+	ExpiresAt int64          `json:"expires_at"`
+	WebAuthn  map[string]any `json:"webauthn,omitempty"`
 }
 
 type MFAVerifyParams struct {
-	FactorID    string `json:"-"`
-	ChallengeID string `json:"challenge_id"`
-	Code        string `json:"code"`
+	FactorID    string         `json:"-"`
+	ChallengeID string         `json:"challenge_id"`
+	Code        string         `json:"code,omitempty"`
+	WebAuthn    map[string]any `json:"webauthn,omitempty"`
 }
 
 type MFAChallengeAndVerifyParams struct {
@@ -55,10 +146,11 @@ type MFAChallengeAndVerifyParams struct {
 }
 
 type MFAListFactorsResponse struct {
-	All      []Factor `json:"all"`
-	TOTP     []Factor `json:"totp"`
-	Phone    []Factor `json:"phone"`
-	WebAuthn []Factor `json:"webauthn"`
+	All          []Factor `json:"all"`
+	TOTP         []Factor `json:"totp"`
+	Phone        []Factor `json:"phone"`
+	WebAuthn     []Factor `json:"webauthn"`
+	RecoveryCode []Factor `json:"recovery_code"`
 }
 
 type MFAUnenrollResponse struct {
@@ -80,6 +172,9 @@ func (m *MFAClient) Enroll(ctx context.Context, params MFAEnrollParams) (*MFAEnr
 	if err := m.client.doJSON(ctx, http.MethodPost, "/factors", params, token, &resp); err != nil {
 		return nil, err
 	}
+	if resp.TOTP != nil && resp.TOTP.QRCode != "" && !strings.HasPrefix(resp.TOTP.QRCode, "data:") {
+		resp.TOTP.QRCode = "data:image/svg+xml;utf-8," + resp.TOTP.QRCode
+	}
 	return &resp, nil
 }
 
@@ -91,6 +186,9 @@ func (m *MFAClient) Challenge(ctx context.Context, params MFAChallengeParams) (*
 	body := map[string]any{}
 	if params.Channel != "" {
 		body["channel"] = params.Channel
+	}
+	if params.WebAuthn != nil {
+		body["webauthn"] = params.WebAuthn
 	}
 	var resp MFAChallengeResponse
 	path := "/factors/" + url.PathEscape(params.FactorID) + "/challenge"
@@ -105,12 +203,18 @@ func (m *MFAClient) Verify(ctx context.Context, params MFAVerifyParams) (*Sessio
 	if err != nil {
 		return nil, err
 	}
+	body := map[string]any{
+		"challenge_id": params.ChallengeID,
+	}
+	if params.Code != "" {
+		body["code"] = params.Code
+	}
+	if params.WebAuthn != nil {
+		body["webauthn"] = params.WebAuthn
+	}
 	var session Session
 	path := "/factors/" + url.PathEscape(params.FactorID) + "/verify"
-	if err := m.client.doJSON(ctx, http.MethodPost, path, map[string]any{
-		"challenge_id": params.ChallengeID,
-		"code":         params.Code,
-	}, token, &session); err != nil {
+	if err := m.client.doJSON(ctx, http.MethodPost, path, body, token, &session); err != nil {
 		return nil, err
 	}
 	if err := m.client.saveSession(ctx, &session, EventMFAChallengeVerified); err != nil {
@@ -151,6 +255,8 @@ func (m *MFAClient) ListFactors(ctx context.Context) (*MFAListFactorsResponse, e
 			resp.Phone = append(resp.Phone, f)
 		case "webauthn":
 			resp.WebAuthn = append(resp.WebAuthn, f)
+		case "recovery_code":
+			resp.RecoveryCode = append(resp.RecoveryCode, f)
 		}
 	}
 	return resp, nil
@@ -168,26 +274,34 @@ func (m *MFAClient) Unenroll(ctx context.Context, factorID string) (*MFAUnenroll
 	return &resp, nil
 }
 
-func (m *MFAClient) GetAuthenticatorAssuranceLevel(ctx context.Context) (*AuthenticatorAssuranceLevelResponse, error) {
-	s, err := m.client.GetSession(ctx)
-	if err != nil {
-		return nil, err
+func (m *MFAClient) GetAuthenticatorAssuranceLevel(ctx context.Context, jwt ...string) (*AuthenticatorAssuranceLevelResponse, error) {
+	var token string
+	var userFactors []Factor
+	if len(jwt) > 0 && jwt[0] != "" {
+		token = jwt[0]
+	} else {
+		s, err := m.client.GetSession(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if s == nil {
+			return &AuthenticatorAssuranceLevelResponse{}, nil
+		}
+		token = s.AccessToken
+		if s.User != nil {
+			userFactors = s.User.Factors
+		}
 	}
-	if s == nil {
-		return &AuthenticatorAssuranceLevelResponse{}, nil
-	}
-	_, claims, _, _, err := parseJWTParts(s.AccessToken)
+	_, claims, _, _, err := parseJWTParts(token)
 	if err != nil {
 		return nil, err
 	}
 	currentLevel, _ := claims["aal"].(string)
 	nextLevel := currentLevel
-	if s.User != nil {
-		for _, f := range s.User.Factors {
-			if f.Status == "verified" {
-				nextLevel = "aal2"
-				break
-			}
+	for _, f := range userFactors {
+		if f.Status == "verified" {
+			nextLevel = "aal2"
+			break
 		}
 	}
 	var amr []map[string]any
@@ -217,13 +331,17 @@ type RecoveryCodesResponse struct {
 	Total     int      `json:"total,omitempty"`
 }
 
-func (r *RecoveryCodesClient) Generate(ctx context.Context) (*RecoveryCodesResponse, error) {
+func (r *RecoveryCodesClient) Generate(ctx context.Context, friendlyName ...string) (*RecoveryCodesResponse, error) {
 	token, err := r.client.requireAccessToken(ctx)
 	if err != nil {
 		return nil, err
 	}
+	var body any
+	if len(friendlyName) > 0 && friendlyName[0] != "" {
+		body = map[string]any{"friendly_name": friendlyName[0]}
+	}
 	var resp RecoveryCodesResponse
-	if err := r.client.doJSON(ctx, http.MethodPost, "/factors/recovery-codes", nil, token, &resp); err != nil {
+	if err := r.client.doJSON(ctx, http.MethodPost, "/factors/recovery-codes", body, token, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
@@ -268,10 +386,14 @@ func (r *RecoveryCodesClient) Regenerate(ctx context.Context) (*RecoveryCodesRes
 	return &resp, nil
 }
 
-func (r *RecoveryCodesClient) Unenroll(ctx context.Context) error {
+func (r *RecoveryCodesClient) Unenroll(ctx context.Context) (*MFAUnenrollResponse, error) {
 	token, err := r.client.requireAccessToken(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return r.client.doJSON(ctx, http.MethodDelete, "/factors/recovery-codes", nil, token, nil)
+	var resp MFAUnenrollResponse
+	if err := r.client.doJSON(ctx, http.MethodDelete, "/factors/recovery-codes", nil, token, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
 }

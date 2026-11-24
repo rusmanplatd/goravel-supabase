@@ -23,6 +23,7 @@ type Options struct {
 	// DB / PostgREST options
 	DBTimeout        time.Duration
 	DBRetry          *bool
+	DBRetryBaseDelay time.Duration
 	DBURLLengthLimit int
 
 	// Auth options
@@ -40,9 +41,11 @@ type Options struct {
 	FunctionsRegion functions.FunctionRegion
 
 	// Realtime options
-	RealtimeTransport         realtime.Transport
-	RealtimeHeartbeatInterval time.Duration
-	RealtimeVsn               string
+	RealtimeTransport          realtime.Transport
+	RealtimeHeartbeatInterval  time.Duration
+	RealtimeVsn                string
+	RealtimeReconnectAfterMs   func(tries int) time.Duration
+	RealtimeDeferredDisconnect time.Duration
 }
 
 // Option is a functional option for client.New.
@@ -122,4 +125,28 @@ func WithDBTimeout(d time.Duration) Option {
 
 func WithDBRetry(enabled bool) Option {
 	return func(o *Options) { o.DBRetry = &enabled }
+}
+
+func WithDBRetryBaseDelay(d time.Duration) Option {
+	return func(o *Options) { o.DBRetryBaseDelay = d }
+}
+
+func WithDBURLLengthLimit(limit int) Option {
+	return func(o *Options) { o.DBURLLengthLimit = limit }
+}
+
+func WithRealtimeHeartbeatInterval(d time.Duration) Option {
+	return func(o *Options) { o.RealtimeHeartbeatInterval = d }
+}
+
+func WithRealtimeVsn(vsn string) Option {
+	return func(o *Options) { o.RealtimeVsn = vsn }
+}
+
+func WithRealtimeReconnectAfterMs(fn func(tries int) time.Duration) Option {
+	return func(o *Options) { o.RealtimeReconnectAfterMs = fn }
+}
+
+func WithRealtimeDeferredDisconnect(d time.Duration) Option {
+	return func(o *Options) { o.RealtimeDeferredDisconnect = d }
 }

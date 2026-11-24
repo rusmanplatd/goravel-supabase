@@ -91,6 +91,12 @@ func (a *AnalyticsClient) ListBuckets(ctx context.Context, opts ...ListBucketsOp
 		if opts[0].Offset > 0 {
 			q.Set("offset", itoa(opts[0].Offset))
 		}
+		if opts[0].SortColumn != "" {
+			q.Set("sortColumn", opts[0].SortColumn)
+		}
+		if opts[0].SortOrder != "" {
+			q.Set("sortOrder", opts[0].SortOrder)
+		}
 		if opts[0].Search != "" {
 			q.Set("search", opts[0].Search)
 		}

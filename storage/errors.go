@@ -21,6 +21,26 @@ func (e *StorageError) Error() string {
 
 func (e *StorageError) Unwrap() error { return e.Err }
 
+// StorageUnknownError represents a network or non-API transport error during a Storage request.
+type StorageUnknownError struct {
+	*StorageError
+	OriginalError error
+}
+
+func (e *StorageUnknownError) Unwrap() error { return e.StorageError }
+
+// StorageVectorsErrorCode represents known S3 Vectors error codes.
+type StorageVectorsErrorCode string
+
+const (
+	VectorsErrInternalError      StorageVectorsErrorCode = "InternalError"
+	VectorsErrConflict           StorageVectorsErrorCode = "S3VectorConflictException"
+	VectorsErrNotFound           StorageVectorsErrorCode = "S3VectorNotFoundException"
+	VectorsErrBucketNotEmpty     StorageVectorsErrorCode = "S3VectorBucketNotEmpty"
+	VectorsErrMaxBucketsExceeded StorageVectorsErrorCode = "S3VectorMaxBucketsExceeded"
+	VectorsErrMaxIndexesExceeded StorageVectorsErrorCode = "S3VectorMaxIndexesExceeded"
+)
+
 // StorageApiError represents an HTTP error returned by the Supabase Storage API.
 type StorageApiError struct {
 	*StorageError

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/goravel/framework/contracts/config"
 	"github.com/goravel/framework/contracts/database/db"
@@ -25,22 +26,38 @@ type goravelLoggerAdapter struct {
 
 func (l goravelLoggerAdapter) Debug(msg string, args ...any) {
 	if l.log != nil {
-		l.log.Debugf(msg+" %v", args)
+		if len(args) == 0 {
+			l.log.Debugf("%s", msg)
+		} else {
+			l.log.Debugf(msg+" %v", args)
+		}
 	}
 }
 func (l goravelLoggerAdapter) Info(msg string, args ...any) {
 	if l.log != nil {
-		l.log.Infof(msg+" %v", args)
+		if len(args) == 0 {
+			l.log.Infof("%s", msg)
+		} else {
+			l.log.Infof(msg+" %v", args)
+		}
 	}
 }
 func (l goravelLoggerAdapter) Warn(msg string, args ...any) {
 	if l.log != nil {
-		l.log.Warningf(msg+" %v", args)
+		if len(args) == 0 {
+			l.log.Warningf("%s", msg)
+		} else {
+			l.log.Warningf(msg+" %v", args)
+		}
 	}
 }
 func (l goravelLoggerAdapter) Error(msg string, args ...any) {
 	if l.log != nil {
-		l.log.Errorf(msg+" %v", args)
+		if len(args) == 0 {
+			l.log.Errorf("%s", msg)
+		} else {
+			l.log.Errorf(msg+" %v", args)
+		}
 	}
 }
 
@@ -94,6 +111,27 @@ func (m *Manager) Connection(name string) (contracts.Supabase, error) {
 	if schema := m.cfg.GetString(prefix+".db.schema", "public"); schema != "" {
 		opts = append(opts, client.WithSchema(schema))
 	}
+	if dbTimeoutMs := m.cfg.GetInt(prefix+".db.timeout", 0); dbTimeoutMs > 0 {
+		opts = append(opts, client.WithDBTimeout(time.Duration(dbTimeoutMs)*time.Millisecond))
+	}
+	if rawRetry := m.cfg.Get(prefix + ".db.retry"); rawRetry != nil {
+		opts = append(opts, client.WithDBRetry(m.cfg.GetBool(prefix+".db.retry", true)))
+	}
+	if limit := m.cfg.GetInt(prefix+".db.url_length_limit", 0); limit > 0 {
+		opts = append(opts, client.WithDBURLLengthLimit(limit))
+	}
+	if rawHeaders := m.cfg.Get(prefix + ".headers"); rawHeaders != nil {
+		switch h := rawHeaders.(type) {
+		case map[string]string:
+			opts = append(opts, client.WithHeaders(h))
+		case map[string]any:
+			strHeaders := make(map[string]string, len(h))
+			for k, v := range h {
+				strHeaders[k] = fmt.Sprint(v)
+			}
+			opts = append(opts, client.WithHeaders(strHeaders))
+		}
+	}
 	if m.logger != nil {
 		opts = append(opts, client.WithLogger(goravelLoggerAdapter{log: m.logger}))
 	}
@@ -103,10 +141,21 @@ func (m *Manager) Connection(name string) (contracts.Supabase, error) {
 	if region := m.cfg.GetString(prefix + ".functions.region"); region != "" {
 		opts = append(opts, client.WithFunctionsRegion(functions.FunctionRegion(region)))
 	}
+	if hbMs := m.cfg.GetInt(prefix+".realtime.heartbeat_interval", 0); hbMs > 0 {
+		opts = append(opts, client.WithRealtimeHeartbeatInterval(time.Duration(hbMs)*time.Millisecond))
+	}
+	if vsn := m.cfg.GetString(prefix + ".realtime.vsn"); vsn != "" {
+		opts = append(opts, client.WithRealtimeVsn(vsn))
+	}
 	if m.cfg.GetBool(prefix+".trace_propagation.enabled", false) {
 		respect := m.cfg.GetBool(prefix+".trace_propagation.respect_sampling_decision", true)
+		var targets []string
+		if rawTargets, ok := m.cfg.Get(prefix + ".trace_propagation.targets").([]string); ok {
+			targets = rawTargets
+		}
 		opts = append(opts, client.WithTracePropagation(transport.TracePropagationOptions{
 			Enabled:                 true,
+			Targets:                 targets,
 			RespectSamplingDecision: &respect,
 		}))
 	}
@@ -160,6 +209,25 @@ func (m *Manager) resolveDBDriver(connName string) string {
 		return connName
 	}
 	return driver
+}
+
+// Close shuts down all cached Supabase connections managed by Manager.
+func (m *Manager) Close() error {
+	m.mu.Lock()
+	adapters := make([]*ClientAdapter, 0, len(m.clients))
+	for _, a := range m.clients {
+		adapters = append(adapters, a)
+	}
+	m.clients = make(map[string]*ClientAdapter)
+	m.mu.Unlock()
+
+	var firstErr error
+	for _, a := range adapters {
+		if err := a.Close(); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+	return firstErr
 }
 
 // ClientAdapter wraps a pure-Go *client.Client to satisfy contracts.Supabase.
@@ -231,6 +299,14 @@ func (a *ClientAdapter) WithContext(ctx context.Context) contracts.Supabase {
 	return &ClientAdapter{manager: a.manager, client: a.client.WithContext(ctx)}
 }
 
+func (a *ClientAdapter) Context() context.Context {
+	return a.client.Context()
+}
+
 func (a *ClientAdapter) WithSchema(schema string) contracts.Supabase {
 	return &ClientAdapter{manager: a.manager, client: a.client.WithSchema(schema)}
+}
+
+func (a *ClientAdapter) Close() error {
+	return a.client.Close()
 }
