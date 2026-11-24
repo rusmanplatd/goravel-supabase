@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Overview — Goravel Supabase Docs</title>
+  <meta name="description" content="1:1 supabase-js compliant Supabase SDK for Go and Goravel." />
+  <link rel="stylesheet" href="assets/style.css" />
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("gsb-theme");
+        if (saved === "light" || saved === "dark") {
+          document.documentElement.setAttribute("data-theme", saved);
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-left">
+        <button class="menu-btn" id="menu-toggle" type="button" aria-label="Toggle navigation">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <a class="brand" href="index.html">
+          <span class="brand-badge">GS</span>
+          <span class="brand-text">Goravel Supabase</span>
+        </a>
+        <span class="version-pill">Go SDK</span>
+      </div>
+      <div class="topbar-right">
+        <div class="search-wrap">
+          <input id="nav-search" type="search" placeholder="Filter pages..." aria-label="Filter documentation pages" />
+        </div>
+        <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle color theme" title="Toggle light/dark theme">
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        <a class="repo-link" href="https://github.com/rusmanplatd/goravel-supabase" target="_blank" rel="noopener noreferrer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Documentation</div>
+        <nav class="sidebar-nav" id="sidebar-nav">
+          <a class="nav-link active" href="index.html">Overview</a>
+          <a class="nav-link" href="client.html">Client &amp; Facade</a>
+          <a class="nav-link" href="auth.html">Auth (GoTrue)</a>
+          <a class="nav-link" href="postgrest.html">PostgREST</a>
+          <a class="nav-link" href="storage.html">Storage</a>
+          <a class="nav-link" href="realtime.html">Realtime</a>
+          <a class="nav-link" href="functions.html">Edge Functions</a>
+        </nav>
+      </div>
+      <div class="sidebar-section sidebar-meta">
+        <div class="sidebar-heading">Resources</div>
+        <nav class="sidebar-nav">
+          <a class="nav-link" href="https://github.com/rusmanplatd/goravel-supabase/blob/master/sdk-compliance.yaml" target="_blank" rel="noopener noreferrer">SDK Compliance (257)</a>
+          <a class="nav-link" href="https://github.com/rusmanplatd/goravel-supabase/blob/master/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
+        </nav>
+      </div>
+    </aside>
+
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <main class="content">
+      <article class="prose">
+        <h1 id="goravel-supabase-githubcomrusmanplatdgoravel-supabase">Goravel Supabase (<code>github.com/rusmanplatd/goravel-supabase</code>)</h1>
+<p>A full-featured, 1:1 <code>supabase-js</code> compliant Supabase SDK for <strong>Go</strong> and <strong>Goravel</strong>, covering all 257 canonical capabilities across <strong>Auth (GoTrue)</strong>, <strong>PostgREST</strong>, <strong>Storage (Files, Analytics Iceberg REST Catalog, Vectors)</strong>, <strong>Realtime (Phoenix Channels + Binary v2)</strong>, and <strong>Edge Functions</strong>.</p>
+<h2 id="documentation">Documentation</h2>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Guide &amp; Full Examples</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Client &amp; Goravel Facade</strong></td>
+<td><a href="client.html">docs/client.md</a></td>
+<td>Root client setup, <code>client.Option</code> helpers, Goravel <code>facades.Supabase()</code>, named connections, per-request scoping, and third-party auth mode.</td>
+</tr>
+<tr>
+<td><strong>Auth (GoTrue)</strong></td>
+<td><a href="auth.html">docs/auth.md</a></td>
+<td>Password, OTP/magic link, OAuth + PKCE, identity linking, SSO, Web3, anonymous sign-in, MFA, recovery codes, Passkeys, OAuth Server consent, JWKS claims, and Admin API.</td>
+</tr>
+<tr>
+<td><strong>PostgREST</strong></td>
+<td><a href="postgrest.html">docs/postgrest.md</a></td>
+<td>Fluent <code>SELECT</code>/<code>INSERT</code>/<code>UPSERT</code>/<code>UPDATE</code>/<code>DELETE</code>, <code>Single</code>/<code>MaybeSingle</code>/<code>Head</code>, filters, full-text search, <code>CSV</code>/<code>GeoJSON</code>/<code>Explain</code>, <code>RPC</code>, and schemas.</td>
+</tr>
+<tr>
+<td><strong>Storage</strong></td>
+<td><a href="storage.html">docs/storage.md</a></td>
+<td>Buckets &amp; lifecycle rules, file uploads/downloads/streaming, image transforms, public &amp; signed URLs, Analytics Iceberg REST Catalog, and Vector Buckets/Indexes.</td>
+</tr>
+<tr>
+<td><strong>Realtime</strong></td>
+<td><a href="realtime.html">docs/realtime.md</a></td>
+<td>Phoenix Channels WebSocket Broadcast, Postgres Changes (<code>RealtimePostgresFilterBuilder</code>), Presence (<code>Track</code>/<code>Untrack</code>), and stateless HTTP Broadcast (<code>HTTPSend</code>).</td>
+</tr>
+<tr>
+<td><strong>Edge Functions</strong></td>
+<td><a href="functions.html">docs/functions.md</a></td>
+<td>JSON, binary, <code>MultipartBody</code> uploads, <code>text/event-stream</code> SSE streaming, regional routing (<code>FunctionRegion</code>), and typed error handling.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="architecture">Architecture</h2>
+<ul>
+<li><strong>Pure-Go Core SDK</strong> (<code>client</code>, <code>auth</code>, <code>postgrest</code>, <code>storage</code>, <code>realtime</code>, <code>functions</code>, <code>internal/transport</code>): Zero <code>github.com/goravel/framework</code> imports. Can be imported directly in any Go project.</li>
+<li><strong>Thin Goravel Integration Layer</strong> (<code>service_provider.go</code>, <code>supabase.go</code>, <code>db_storage.go</code>, <code>contracts/</code>, <code>facades/</code>, <code>setup/</code>): Provides <code>facades.Supabase()</code>, <code>contracts.Supabase</code>, multi-connection resolution, concurrency-safe per-request derived scoping (<code>WithToken</code>, <code>WithAccessToken</code>, <code>WithContext</code>, <code>WithSchema</code>), and dialect-aware raw-SQL persistent auth session storage via <code>facades.DB()</code>.</li>
+</ul>
+<h2 id="installation-goravel">Installation (Goravel)</h2>
+<div class="codehilite"><pre><span></span><code>go<span class="w"> </span>get<span class="w"> </span>github.com/rusmanplatd/goravel-supabase
+./artisan<span class="w"> </span>package:install<span class="w"> </span>github.com/rusmanplatd/goravel-supabase
+</code></pre></div>
+
+<p>Set your project credentials in <code>.env</code>:</p>
+<div class="codehilite"><pre><span></span><code>SUPABASE_CONNECTION=default
+SUPABASE_URL=https://xyzcompany.supabase.co
+SUPABASE_KEY=sb_publishable_...
+</code></pre></div>
+
+<h2 id="goravel-facade-usage">Goravel Facade Usage</h2>
+<div class="codehilite"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">controllers</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;github.com/goravel/framework/contracts/http&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/facades&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/postgrest&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">User</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">ID</span><span class="w">   </span><span class="kt">int</span><span class="w">    </span><span class="s">`json:&quot;id&quot;`</span>
+<span class="w">    </span><span class="nx">Name</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="s">`json:&quot;name&quot;`</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">ListUsers</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Response</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Derive a concurrency-safe per-request client bound to the caller&#39;s JWT and context</span>
+<span class="w">    </span><span class="nx">jwt</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Request</span><span class="p">().</span><span class="nx">Header</span><span class="p">(</span><span class="s">&quot;Authorization&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">sb</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">facades</span><span class="p">.</span><span class="nx">Supabase</span><span class="p">().</span><span class="nx">WithContext</span><span class="p">(</span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Context</span><span class="p">()).</span><span class="nx">WithToken</span><span class="p">(</span><span class="nx">jwt</span><span class="p">)</span>
+
+<span class="w">    </span><span class="nx">users</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[[]</span><span class="nx">User</span><span class="p">](</span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Context</span><span class="p">(),</span>
+<span class="w">        </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;users&quot;</span><span class="p">).</span><span class="nx">Select</span><span class="p">(</span><span class="s">&quot;id, name&quot;</span><span class="p">).</span><span class="nx">Eq</span><span class="p">(</span><span class="s">&quot;active&quot;</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">).</span><span class="nx">Order</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">),</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Json</span><span class="p">{</span><span class="s">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">err</span><span class="p">.</span><span class="nx">Error</span><span class="p">()})</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Success</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="nx">users</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3 id="named-connections-persistent-auth-storage">Named Connections &amp; Persistent Auth Storage</h3>
+<ul>
+<li>Call <code>facades.Supabase("analytics")</code> to resolve a named connection from <code>config/supabase.go</code>.</li>
+<li>By default (<code>auth.storage_driver: "database"</code>), Goravel persists GoTrue sessions in <code>supabase_auth_sessions</code> using <code>facades.DB()</code> raw SQL with dialect-aware placeholders (<code>$1</code> PostgreSQL, <code>?</code> MySQL/SQLite, <code>@p1</code> SQL Server).</li>
+<li>Set <code>SUPABASE_AUTH_STORAGE_DRIVER=memory</code> to use in-memory session storage without requiring a database connection.</li>
+</ul>
+<h2 id="standalone-pure-go-usage">Standalone Pure-Go Usage</h2>
+<div class="codehilite"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;context&quot;</span>
+<span class="w">    </span><span class="s">&quot;fmt&quot;</span>
+<span class="w">    </span><span class="s">&quot;log&quot;</span>
+
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/client&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/functions&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/postgrest&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span>
+<span class="w">        </span><span class="s">&quot;https://xyzcompany.supabase.co&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s">&quot;sb_publishable_...&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithSchema</span><span class="p">(</span><span class="s">&quot;public&quot;</span><span class="p">),</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+
+<span class="w">    </span><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+
+<span class="w">    </span><span class="c1">// PostgREST query</span>
+<span class="w">    </span><span class="nx">rows</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[[]</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">](</span><span class="nx">ctx</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;profiles&quot;</span><span class="p">).</span><span class="nx">Select</span><span class="p">(</span><span class="s">&quot;*&quot;</span><span class="p">).</span><span class="nx">Limit</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="nx">rows</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1">// Edge Function invocation</span>
+<span class="w">    </span><span class="nx">res</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Functions</span><span class="p">.</span><span class="nx">Invoke</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;hello-world&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">functions</span><span class="p">.</span><span class="nx">InvokeOptions</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Region</span><span class="p">:</span><span class="w"> </span><span class="nx">functions</span><span class="p">.</span><span class="nx">RegionUsEast1</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Body</span><span class="p">:</span><span class="w">   </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Ada&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="nx">res</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h2 id="testing-sdk-compliance">Testing &amp; SDK Compliance</h2>
+<p>Run the full test suite (including the automated 257-capability compliance check against <a href="https://github.com/rusmanplatd/goravel-supabase/blob/master/sdk-compliance.yaml">sdk-compliance.yaml</a>):</p>
+<div class="codehilite"><pre><span></span><code>go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>./...
+</code></pre></div>
+      </article>
+      <nav class="pager" aria-label="Pagination">
+<div></div>
+<a class="pager-card pager-next" href="client.html"><span class="pager-label">Next</span><span class="pager-title">Client &amp; Facade &rarr;</span></a>
+</nav>
+    </main>
+
+    <aside class="toc" aria-label="Table of contents">
+      <div class="toc-inner">
+        <div class="toc-heading">On this page</div>
+        <div class="toc">
+<ul>
+<li><a href="#documentation">Documentation</a></li>
+<li><a href="#architecture">Architecture</a></li>
+<li><a href="#installation-goravel">Installation (Goravel)</a></li>
+<li><a href="#goravel-facade-usage">Goravel Facade Usage</a><ul>
+<li><a href="#named-connections-persistent-auth-storage">Named Connections &amp; Persistent Auth Storage</a></li>
+</ul>
+</li>
+<li><a href="#standalone-pure-go-usage">Standalone Pure-Go Usage</a></li>
+<li><a href="#testing-sdk-compliance">Testing &amp; SDK Compliance</a></li>
+</ul>
+</div>
+
+      </div>
+    </aside>
+  </div>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

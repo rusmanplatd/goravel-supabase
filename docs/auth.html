@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auth (GoTrue) — Goravel Supabase Docs</title>
+  <meta name="description" content="Password, OTP, OAuth + PKCE, MFA, Passkeys, SSO, Web3, JWKS, and Admin API." />
+  <link rel="stylesheet" href="assets/style.css" />
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("gsb-theme");
+        if (saved === "light" || saved === "dark") {
+          document.documentElement.setAttribute("data-theme", saved);
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-left">
+        <button class="menu-btn" id="menu-toggle" type="button" aria-label="Toggle navigation">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <a class="brand" href="index.html">
+          <span class="brand-badge">GS</span>
+          <span class="brand-text">Goravel Supabase</span>
+        </a>
+        <span class="version-pill">Go SDK</span>
+      </div>
+      <div class="topbar-right">
+        <div class="search-wrap">
+          <input id="nav-search" type="search" placeholder="Filter pages..." aria-label="Filter documentation pages" />
+        </div>
+        <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle color theme" title="Toggle light/dark theme">
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        <a class="repo-link" href="https://github.com/rusmanplatd/goravel-supabase" target="_blank" rel="noopener noreferrer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Documentation</div>
+        <nav class="sidebar-nav" id="sidebar-nav">
+          <a class="nav-link" href="index.html">Overview</a>
+          <a class="nav-link" href="client.html">Client &amp; Facade</a>
+          <a class="nav-link active" href="auth.html">Auth (GoTrue)</a>
+          <a class="nav-link" href="postgrest.html">PostgREST</a>
+          <a class="nav-link" href="storage.html">Storage</a>
+          <a class="nav-link" href="realtime.html">Realtime</a>
+          <a class="nav-link" href="functions.html">Edge Functions</a>
+        </nav>
+      </div>
+      <div class="sidebar-section sidebar-meta">
+        <div class="sidebar-heading">Resources</div>
+        <nav class="sidebar-nav">
+          <a class="nav-link" href="https://github.com/rusmanplatd/goravel-supabase/blob/master/sdk-compliance.yaml" target="_blank" rel="noopener noreferrer">SDK Compliance (257)</a>
+          <a class="nav-link" href="https://github.com/rusmanplatd/goravel-supabase/blob/master/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
+        </nav>
+      </div>
+    </aside>
+
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <main class="content">
+      <article class="prose">
+        <h1 id="auth-auth">Auth (<code>auth</code>)</h1>
+<p>The <code>auth</code> package implements a pure-Go Supabase GoTrue client covering password, OTP/magic link, OAuth/PKCE, identity linking, SSO, Web3, anonymous sign-in, MFA (TOTP, Phone, WebAuthn, recovery codes), Passkeys, OAuth Server consent/grants, JWKS claim verification, and Admin APIs.</p>
+<ul>
+<li><strong>Package:</strong> <code>github.com/rusmanplatd/goravel-supabase/auth</code></li>
+<li><strong>Access via Client:</strong> <code>sb.Auth</code> (pure-Go) or <code>facades.Supabase().Auth()</code> (Goravel)</li>
+</ul>
+<hr />
+<h2 id="1-email-password-authentication">1. Email &amp; Password Authentication</h2>
+<div class="codehilite"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;context&quot;</span>
+<span class="w">    </span><span class="s">&quot;errors&quot;</span>
+<span class="w">    </span><span class="s">&quot;fmt&quot;</span>
+<span class="w">    </span><span class="s">&quot;log&quot;</span>
+
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/auth&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/client&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="s">&quot;https://xyzcompany.supabase.co&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sb_publishable_...&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+
+<span class="w">    </span><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+
+<span class="w">    </span><span class="c1">// Sign up with user metadata and email redirect</span>
+<span class="w">    </span><span class="nx">signUpRes</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">SignUp</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">SignUpParams</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Email</span><span class="p">:</span><span class="w">           </span><span class="s">&quot;ada@example.com&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Password</span><span class="p">:</span><span class="w">        </span><span class="s">&quot;strong-password-123&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">EmailRedirectTo</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://app.example.com/welcome&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Data</span><span class="p">:</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span>
+<span class="w">            </span><span class="s">&quot;full_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Ada Lovelace&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s">&quot;plan&quot;</span><span class="p">:</span><span class="w">      </span><span class="s">&quot;pro&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">var</span><span class="w"> </span><span class="nx">apiErr</span><span class="w"> </span><span class="o">*</span><span class="nx">auth</span><span class="p">.</span><span class="nx">AuthApiError</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">errors</span><span class="p">.</span><span class="nx">As</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">apiErr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatalf</span><span class="p">(</span><span class="s">&quot;SignUp failed (%d %s): %s&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">apiErr</span><span class="p">.</span><span class="nx">Status</span><span class="p">,</span><span class="w"> </span><span class="nx">apiErr</span><span class="p">.</span><span class="nx">Code</span><span class="p">,</span><span class="w"> </span><span class="nx">apiErr</span><span class="p">.</span><span class="nx">Message</span><span class="p">)</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Signed up user ID:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">signUpRes</span><span class="p">.</span><span class="nx">User</span><span class="p">.</span><span class="nx">ID</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1">// Sign in with password</span>
+<span class="w">    </span><span class="nx">signInRes</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">SignInWithPassword</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">SignInWithPasswordParams</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Email</span><span class="p">:</span><span class="w">    </span><span class="s">&quot;ada@example.com&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Password</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;strong-password-123&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Access token:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">signInRes</span><span class="p">.</span><span class="nx">Session</span><span class="p">.</span><span class="nx">AccessToken</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h2 id="2-magic-link-otp-email-sms-verifyotp-and-resend">2. Magic Link, OTP (Email &amp; SMS), VerifyOtp, and Resend</h2>
+<div class="codehilite"><pre><span></span><code><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+
+<span class="c1">// 1. Send Email Magic Link / OTP</span>
+<span class="nx">createUser</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="kc">true</span>
+<span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">SignInWithOtp</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">SignInWithOtpParams</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Email</span><span class="p">:</span><span class="w">            </span><span class="s">&quot;ada@example.com&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">EmailRedirectTo</span><span class="p">:</span><span class="w">  </span><span class="s">&quot;https://app.example.com/auth/callback&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">ShouldCreateUser</span><span class="p">:</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">createUser</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Data</span><span class="p">:</span><span class="w">             </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;magic_link&quot;</span><span class="p">},</span>
+<span class="p">})</span>
+<span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// 2. Send SMS OTP</span>
+<span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">SignInWithOtp</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">SignInWithOtpParams</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Phone</span><span class="p">:</span><span class="w">   </span><span class="s">&quot;+15551234567&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Channel</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;sms&quot;</span><span class="p">,</span>
+<span class="p">})</span>
+
+<span class="c1">// 3. Resend confirmation or OTP</span>
+<span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">Resend</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">ResendParams</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Type</span><span class="p">:</span><span class="w">            </span><span class="s">&quot;signup&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Email</span><span class="p">:</span><span class="w">           </span><span class="s">&quot;ada@example.com&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">EmailRedirectTo</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://app.example.com/auth/callback&quot;</span><span class="p">,</span>
+<span class="p">})</span>
+
+<span class="c1">// 4. Verify OTP (or TokenHash from email link)</span>
+<span class="nx">res</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">VerifyOtp</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">VerifyOtpParams</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Email</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ada@example.com&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;123456&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Type</span><span class="p">:</span><span class="w">  </span><span class="s">&quot;email&quot;</span><span class="p">,</span>
+<span class="p">})</span>
+<span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Verified user:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">res</span><span class="p">.</span><span class="nx">User</span><span class="p">.</span><span class="nx">Email</span><span class="p">)</span>
+</code></pre></div>
+
+<hr />
+<h2 id="3-oauth-pkce-flow-goravel-controller-example">3. OAuth &amp; PKCE Flow (Goravel Controller Example)</h2>
+<div class="codehilite"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">controllers</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;github.com/goravel/framework/contracts/http&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/auth&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/facades&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">OAuthController</span><span class="w"> </span><span class="kd">struct</span><span class="p">{}</span>
+
+<span class="c1">// Redirect initiates the OAuth PKCE flow and redirects the browser to the provider.</span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><span class="nx">OAuthController</span><span class="p">)</span><span class="w"> </span><span class="nx">Redirect</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Response</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">sb</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">facades</span><span class="p">.</span><span class="nx">Supabase</span><span class="p">()</span>
+
+<span class="w">    </span><span class="nx">oauthRes</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">().</span><span class="nx">SignInWithOAuth</span><span class="p">(</span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Context</span><span class="p">(),</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">SignInWithOAuthParams</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Provider</span><span class="p">:</span><span class="w">   </span><span class="s">&quot;github&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">RedirectTo</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://app.example.com/auth/callback&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Scopes</span><span class="p">:</span><span class="w">     </span><span class="s">&quot;read:user user:email&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">QueryParams</span><span class="p">:</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">string</span><span class="p">{</span>
+<span class="w">            </span><span class="s">&quot;allow_signup&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Json</span><span class="p">{</span><span class="s">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">err</span><span class="p">.</span><span class="nx">Error</span><span class="p">()})</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Redirect</span><span class="p">(</span><span class="mi">302</span><span class="p">,</span><span class="w"> </span><span class="nx">oauthRes</span><span class="p">.</span><span class="nx">URL</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// Callback exchanges the authorization code (or full callback URL) for a Session.</span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><span class="nx">OAuthController</span><span class="p">)</span><span class="w"> </span><span class="nx">Callback</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Response</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">sb</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">facades</span><span class="p">.</span><span class="nx">Supabase</span><span class="p">()</span>
+<span class="w">    </span><span class="nx">code</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Request</span><span class="p">().</span><span class="nx">Query</span><span class="p">(</span><span class="s">&quot;code&quot;</span><span class="p">)</span>
+
+<span class="w">    </span><span class="nx">authRes</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">().</span><span class="nx">ExchangeCodeForSession</span><span class="p">(</span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Context</span><span class="p">(),</span><span class="w"> </span><span class="nx">code</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Json</span><span class="p">{</span><span class="s">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">err</span><span class="p">.</span><span class="nx">Error</span><span class="p">()})</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Success</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="nx">http</span><span class="p">.</span><span class="nx">Json</span><span class="p">{</span>
+<span class="w">        </span><span class="s">&quot;user&quot;</span><span class="p">:</span><span class="w">         </span><span class="nx">authRes</span><span class="p">.</span><span class="nx">User</span><span class="p">,</span>
+<span class="w">        </span><span class="s">&quot;access_token&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">authRes</span><span class="p">.</span><span class="nx">Session</span><span class="p">.</span><span class="nx">AccessToken</span><span class="p">,</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>You can also parse a raw callback URL directly using <code>auth.ParseCallbackURL(rawURL)</code> or <code>sb.Auth.GetSessionFromURL(ctx, rawURL)</code>.</p>
+<hr />
+<h2 id="4-anonymous-oidc-id-token-enterprise-sso-and-web3">4. Anonymous, OIDC ID Token, Enterprise SSO, and Web3</h2>
+<div class="codehilite"><pre><span></span><code><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+
+<span class="c1">// Anonymous sign-in</span>
+<span class="nx">anonRes</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">SignInAnonymously</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">SignInAnonymouslyParams</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Data</span><span class="p">:</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;guest&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">},</span>
+<span class="p">})</span>
+
+<span class="c1">// External OIDC ID token (Google, Apple, etc.)</span>
+<span class="nx">idTokenRes</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">SignInWithIdToken</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">SignInWithIdTokenParams</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Provider</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;google&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Token</span><span class="p">:</span><span class="w">    </span><span class="nx">googleIDToken</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Nonce</span><span class="p">:</span><span class="w">    </span><span class="nx">rawNonce</span><span class="p">,</span>
+<span class="p">})</span>
+
+<span class="c1">// Enterprise SAML/SSO by domain or provider ID</span>
+<span class="nx">ssoRes</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">SignInWithSSO</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">SignInWithSSOParams</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Domain</span><span class="p">:</span><span class="w">     </span><span class="s">&quot;acme.com&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">RedirectTo</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://app.example.com/sso/callback&quot;</span><span class="p">,</span>
+<span class="p">})</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Redirect user to SSO URL:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">ssoRes</span><span class="p">.</span><span class="nx">URL</span><span class="p">)</span>
+
+<span class="c1">// Web3 (Ethereum SIWE or Solana)</span>
+<span class="nx">web3Res</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">SignInWithWeb3</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">SignInWithWeb3Params</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Chain</span><span class="p">:</span><span class="w">     </span><span class="s">&quot;ethereum&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Message</span><span class="p">:</span><span class="w">   </span><span class="nx">siweMessage</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Signature</span><span class="p">:</span><span class="w"> </span><span class="nx">hexSignature</span><span class="p">,</span>
+<span class="p">})</span>
+</code></pre></div>
+
+<hr />
+<h2 id="5-identity-linking-unlinking">5. Identity Linking &amp; Unlinking</h2>
+<div class="codehilite"><pre><span></span><code><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+
+<span class="c1">// List linked identities for the current user</span>
+<span class="nx">identities</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">GetUserIdentities</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+<span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// Link a new OAuth identity (redirects user to oauthRes.URL)</span>
+<span class="nx">oauthRes</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">LinkIdentity</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">SignInWithOAuthParams</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Provider</span><span class="p">:</span><span class="w">   </span><span class="s">&quot;google&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">RedirectTo</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://app.example.com/settings/linked&quot;</span><span class="p">,</span>
+<span class="p">})</span>
+
+<span class="c1">// Or link directly using an OIDC ID token</span>
+<span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">LinkIdentityWithIdToken</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">SignInWithIdTokenParams</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Provider</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;apple&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Token</span><span class="p">:</span><span class="w">    </span><span class="nx">appleIDToken</span><span class="p">,</span>
+<span class="p">})</span>
+
+<span class="c1">// Unlink an existing identity</span>
+<span class="k">if</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="nx">identities</span><span class="p">)</span><span class="w"> </span><span class="p">&gt;</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">UnlinkIdentity</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">identities</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h2 id="6-session-user-password-recovery-jwks-claims-auth-listener">6. Session, User, Password Recovery, JWKS Claims &amp; Auth Listener</h2>
+<div class="codehilite"><pre><span></span><code><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+
+<span class="c1">// Listen to auth state changes</span>
+<span class="nx">sub</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">OnAuthStateChange</span><span class="p">(</span><span class="kd">func</span><span class="p">(</span><span class="nx">event</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">AuthChangeEvent</span><span class="p">,</span><span class="w"> </span><span class="nx">session</span><span class="w"> </span><span class="o">*</span><span class="nx">auth</span><span class="p">.</span><span class="nx">Session</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="nx">event</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">EventInitialSession</span><span class="p">:</span>
+<span class="w">        </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Initial session loaded&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">EventSignedIn</span><span class="p">:</span>
+<span class="w">        </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;User signed in:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">session</span><span class="p">.</span><span class="nx">User</span><span class="p">.</span><span class="nx">Email</span><span class="p">)</span>
+<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">EventTokenRefreshed</span><span class="p">:</span>
+<span class="w">        </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Token refreshed&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">EventUserUpdated</span><span class="p">:</span>
+<span class="w">        </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;User updated&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">EventPasswordRecovery</span><span class="p">:</span>
+<span class="w">        </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Password recovery flow active&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">EventSignedOut</span><span class="p">:</span>
+<span class="w">        </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;User signed out&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">})</span>
+<span class="k">defer</span><span class="w"> </span><span class="nx">sub</span><span class="p">.</span><span class="nx">Unsubscribe</span><span class="p">()</span>
+
+<span class="c1">// Get current session (auto-refreshes if near expiry)</span>
+<span class="nx">session</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">GetSession</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+
+<span class="c1">// Manually set or refresh a session</span>
+<span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">SetSession</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">accessToken</span><span class="p">,</span><span class="w"> </span><span class="nx">refreshToken</span><span class="p">)</span>
+<span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">RefreshSession</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+
+<span class="c1">// Fetch user from GoTrue</span>
+<span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">GetUser</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">accessToken</span><span class="p">)</span>
+
+<span class="c1">// Verify &amp; extract JWT claims locally via JWKS (or GetClaimsWithOptions)</span>
+<span class="nx">claims</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">GetClaims</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">accessToken</span><span class="p">)</span>
+<span class="nx">claimsCustom</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">GetClaimsWithOptions</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">GetClaimsOptions</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">JWT</span><span class="p">:</span><span class="w">          </span><span class="nx">accessToken</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">AllowExpired</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="p">})</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Claims subject:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">claims</span><span class="p">.</span><span class="nx">Claims</span><span class="p">[</span><span class="s">&quot;sub&quot;</span><span class="p">],</span><span class="w"> </span><span class="nx">claimsCustom</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="p">)</span>
+
+<span class="c1">// Request password reset email &amp; reauthenticate before sensitive updates</span>
+<span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">ResetPasswordForEmail</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;ada@example.com&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">ResetPasswordOptions</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">RedirectTo</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://app.example.com/reset-password&quot;</span><span class="p">,</span>
+<span class="p">})</span>
+<span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">Reauthenticate</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+
+<span class="c1">// Update user email, password, or metadata</span>
+<span class="nx">updatedUser</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">UpdateUser</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">UpdateUserParams</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Password</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;new-strong-password-456&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Data</span><span class="p">:</span><span class="w">     </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;theme&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;dark&quot;</span><span class="p">},</span>
+<span class="p">})</span>
+
+<span class="c1">// Sign out (ScopeLocal, ScopeGlobal, or ScopeOthers)</span>
+<span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">SignOut</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">ScopeLocal</span><span class="p">)</span>
+</code></pre></div>
+
+<hr />
+<h2 id="7-multi-factor-authentication-mfa-recovery-codes-webauthn">7. Multi-Factor Authentication (MFA, Recovery Codes &amp; WebAuthn)</h2>
+<div class="codehilite"><pre><span></span><code><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+
+<span class="c1">// 1. Enroll a TOTP factor</span>
+<span class="nx">enroll</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">MFA</span><span class="p">.</span><span class="nx">Enroll</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">MFAEnrollParams</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">FactorType</span><span class="p">:</span><span class="w">   </span><span class="s">&quot;totp&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">FriendlyName</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Authenticator App&quot;</span><span class="p">,</span>
+<span class="p">})</span>
+<span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Scan QR:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">enroll</span><span class="p">.</span><span class="nx">TOTP</span><span class="p">.</span><span class="nx">QRCode</span><span class="p">)</span>
+
+<span class="c1">// 2. Challenge &amp; verify in one call (or call Challenge + Verify separately)</span>
+<span class="nx">session</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">MFA</span><span class="p">.</span><span class="nx">ChallengeAndVerify</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">MFAChallengeAndVerifyParams</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">FactorID</span><span class="p">:</span><span class="w"> </span><span class="nx">enroll</span><span class="p">.</span><span class="nx">ID</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Code</span><span class="p">:</span><span class="w">     </span><span class="s">&quot;123456&quot;</span><span class="p">,</span>
+<span class="p">})</span>
+
+<span class="c1">// 3. List enrolled factors &amp; check Authenticator Assurance Level (aal1/aal2)</span>
+<span class="nx">factors</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">MFA</span><span class="p">.</span><span class="nx">ListFactors</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+<span class="nx">aal</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">MFA</span><span class="p">.</span><span class="nx">GetAuthenticatorAssuranceLevel</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;Current AAL: %s, Next AAL: %s, TOTP count: %d\n&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">aal</span><span class="p">.</span><span class="nx">CurrentLevel</span><span class="p">,</span><span class="w"> </span><span class="nx">aal</span><span class="p">.</span><span class="nx">NextLevel</span><span class="p">,</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="nx">factors</span><span class="p">.</span><span class="nx">TOTP</span><span class="p">))</span>
+
+<span class="c1">// 4. Generate &amp; verify MFA recovery codes</span>
+<span class="nx">codes</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">MFA</span><span class="p">.</span><span class="nx">RecoveryCodes</span><span class="p">.</span><span class="nx">Generate</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Backup Codes&quot;</span><span class="p">)</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Save these codes:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">codes</span><span class="p">.</span><span class="nx">RecoveryCodes</span><span class="p">)</span>
+<span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">MFA</span><span class="p">.</span><span class="nx">RecoveryCodes</span><span class="p">.</span><span class="nx">Verify</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">codes</span><span class="p">.</span><span class="nx">RecoveryCodes</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="c1">// 5. Unenroll a factor</span>
+<span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">MFA</span><span class="p">.</span><span class="nx">Unenroll</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">enroll</span><span class="p">.</span><span class="nx">ID</span><span class="p">)</span>
+</code></pre></div>
+
+<hr />
+<h2 id="8-passkeys-oauth-server-consent">8. Passkeys &amp; OAuth Server Consent</h2>
+<h3 id="passkeys-two-step-server-flow">Passkeys (Two-Step Server Flow)</h3>
+<div class="codehilite"><pre><span></span><code><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+
+<span class="c1">// Registration flow</span>
+<span class="nx">regOpts</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">Passkey</span><span class="p">.</span><span class="nx">RegistrationOptions</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+<span class="c1">// Send regOpts to browser navigator.credentials.create(...), then verify:</span>
+<span class="nx">passkey</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">Passkey</span><span class="p">.</span><span class="nx">RegistrationVerify</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">PasskeyRegistrationVerifyParams</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">ChallengeID</span><span class="p">:</span><span class="w"> </span><span class="nx">regOpts</span><span class="p">.</span><span class="nx">ChallengeID</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">FriendlyName</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;MacBook Touch ID&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Credential</span><span class="p">:</span><span class="w">  </span><span class="nx">clientAttestationPayload</span><span class="p">,</span>
+<span class="p">})</span>
+
+<span class="c1">// List, rename, and delete passkeys</span>
+<span class="nx">list</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">Passkey</span><span class="p">.</span><span class="nx">List</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+<span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">Passkey</span><span class="p">.</span><span class="nx">Update</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">passkey</span><span class="p">.</span><span class="nx">ID</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Work MacBook&quot;</span><span class="p">)</span>
+<span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">Passkey</span><span class="p">.</span><span class="nx">Delete</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">passkey</span><span class="p">.</span><span class="nx">ID</span><span class="p">)</span>
+
+<span class="c1">// Authentication flow</span>
+<span class="nx">authOpts</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">Passkey</span><span class="p">.</span><span class="nx">AuthenticationOptions</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+<span class="nx">authRes</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">Passkey</span><span class="p">.</span><span class="nx">AuthenticationVerify</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">PasskeyAuthenticationVerifyParams</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">ChallengeID</span><span class="p">:</span><span class="w"> </span><span class="nx">authOpts</span><span class="p">.</span><span class="nx">ChallengeID</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Credential</span><span class="p">:</span><span class="w">  </span><span class="nx">clientAssertionPayload</span><span class="p">,</span>
+<span class="p">})</span>
+</code></pre></div>
+
+<h3 id="oauth-server-consent-grants">OAuth Server Consent &amp; Grants</h3>
+<div class="codehilite"><pre><span></span><code><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+
+<span class="nx">details</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">OAuth</span><span class="p">.</span><span class="nx">GetAuthorizationDetails</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">authorizationID</span><span class="p">)</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Client requesting access:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">details</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">Name</span><span class="p">)</span>
+
+<span class="nx">consent</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">OAuth</span><span class="p">.</span><span class="nx">ApproveAuthorization</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">authorizationID</span><span class="p">)</span>
+<span class="c1">// Or deny: consent, err = sb.Auth.OAuth.DenyAuthorization(ctx, authorizationID)</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Redirect to:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">consent</span><span class="p">.</span><span class="nx">RedirectTo</span><span class="p">)</span>
+
+<span class="c1">// Manage user&#39;s granted OAuth apps</span>
+<span class="nx">grants</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">OAuth</span><span class="p">.</span><span class="nx">ListGrants</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+<span class="k">if</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="nx">grants</span><span class="p">)</span><span class="w"> </span><span class="p">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">OAuth</span><span class="p">.</span><span class="nx">RevokeGrant</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">grants</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">Client</span><span class="p">.</span><span class="nx">ID</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h2 id="9-admin-api-service-role">9. Admin API (Service Role)</h2>
+<p>Initialize a client with your <code>service_role</code> / secret key:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;context&quot;</span>
+<span class="w">    </span><span class="s">&quot;fmt&quot;</span>
+<span class="w">    </span><span class="s">&quot;log&quot;</span>
+
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/auth&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/client&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">adminSB</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span>
+<span class="w">        </span><span class="s">&quot;https://xyzcompany.supabase.co&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s">&quot;sb_secret_...&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithPersistSession</span><span class="p">(</span><span class="kc">false</span><span class="p">),</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">adminSB</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+
+<span class="w">    </span><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+
+<span class="w">    </span><span class="c1">// Create user</span>
+<span class="w">    </span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">adminSB</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">Admin</span><span class="p">.</span><span class="nx">CreateUser</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">AdminCreateUserParams</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Email</span><span class="p">:</span><span class="w">        </span><span class="s">&quot;grace@example.com&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Password</span><span class="p">:</span><span class="w">     </span><span class="s">&quot;temp-password-123&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">EmailConfirm</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">UserMetadata</span><span class="p">:</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Grace Hopper&quot;</span><span class="p">},</span>
+<span class="w">        </span><span class="nx">AppMetadata</span><span class="p">:</span><span class="w">  </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;admin&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Update user by ID</span>
+<span class="w">    </span><span class="nx">confirmed</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">    </span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">adminSB</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">Admin</span><span class="p">.</span><span class="nx">UpdateUserById</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">user</span><span class="p">.</span><span class="nx">ID</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">AdminUpdateUserParams</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">EmailConfirm</span><span class="p">:</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">confirmed</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">AppMetadata</span><span class="p">:</span><span class="w">  </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;superadmin&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">})</span>
+
+<span class="w">    </span><span class="c1">// List users with pagination</span>
+<span class="w">    </span><span class="nx">page</span><span class="p">,</span><span class="w"> </span><span class="nx">perPage</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">25</span>
+<span class="w">    </span><span class="nx">usersPage</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">adminSB</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">Admin</span><span class="p">.</span><span class="nx">ListUsers</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">AdminListUsersParams</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Page</span><span class="p">:</span><span class="w">    </span><span class="o">&amp;</span><span class="nx">page</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">PerPage</span><span class="p">:</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">perPage</span><span class="p">,</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Total users:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">usersPage</span><span class="p">.</span><span class="nx">Total</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1">// Invite user by email &amp; generate auth links</span>
+<span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">adminSB</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">Admin</span><span class="p">.</span><span class="nx">InviteUserByEmail</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;newbie@example.com&quot;</span><span class="p">,</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;team&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;core&quot;</span><span class="p">})</span>
+<span class="w">    </span><span class="nx">link</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">adminSB</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">Admin</span><span class="p">.</span><span class="nx">GenerateLink</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">GenerateLinkParams</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Type</span><span class="p">:</span><span class="w">  </span><span class="s">&quot;magiclink&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Email</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;grace@example.com&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Action link:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">link</span><span class="p">.</span><span class="nx">Properties</span><span class="p">.</span><span class="nx">ActionLink</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1">// Admin MFA, Passkey, OAuth Clients, and Custom Providers</span>
+<span class="w">    </span><span class="nx">factors</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">adminSB</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">Admin</span><span class="p">.</span><span class="nx">MFA</span><span class="p">.</span><span class="nx">ListFactors</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">user</span><span class="p">.</span><span class="nx">ID</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">passkeys</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">adminSB</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">Admin</span><span class="p">.</span><span class="nx">Passkey</span><span class="p">.</span><span class="nx">ListPasskeys</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">user</span><span class="p">.</span><span class="nx">ID</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">oauthClients</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">adminSB</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">Admin</span><span class="p">.</span><span class="nx">OAuth</span><span class="p">.</span><span class="nx">ListClients</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">providers</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">adminSB</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">Admin</span><span class="p">.</span><span class="nx">CustomProviders</span><span class="p">.</span><span class="nx">ListProviders</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">factors</span><span class="p">,</span><span class="w"> </span><span class="nx">passkeys</span><span class="p">,</span><span class="w"> </span><span class="nx">oauthClients</span><span class="p">,</span><span class="w"> </span><span class="nx">providers</span>
+
+<span class="w">    </span><span class="c1">// Delete user</span>
+<span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">adminSB</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">Admin</span><span class="p">.</span><span class="nx">DeleteUser</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">user</span><span class="p">.</span><span class="nx">ID</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+      </article>
+      <nav class="pager" aria-label="Pagination">
+<a class="pager-card pager-prev" href="client.html"><span class="pager-label">Previous</span><span class="pager-title">&larr; Client &amp; Facade</span></a>
+<a class="pager-card pager-next" href="postgrest.html"><span class="pager-label">Next</span><span class="pager-title">PostgREST &rarr;</span></a>
+</nav>
+    </main>
+
+    <aside class="toc" aria-label="Table of contents">
+      <div class="toc-inner">
+        <div class="toc-heading">On this page</div>
+        <div class="toc">
+<ul>
+<li><a href="#1-email-password-authentication">1. Email &amp; Password Authentication</a></li>
+<li><a href="#2-magic-link-otp-email-sms-verifyotp-and-resend">2. Magic Link, OTP (Email &amp; SMS), VerifyOtp, and Resend</a></li>
+<li><a href="#3-oauth-pkce-flow-goravel-controller-example">3. OAuth &amp; PKCE Flow (Goravel Controller Example)</a></li>
+<li><a href="#4-anonymous-oidc-id-token-enterprise-sso-and-web3">4. Anonymous, OIDC ID Token, Enterprise SSO, and Web3</a></li>
+<li><a href="#5-identity-linking-unlinking">5. Identity Linking &amp; Unlinking</a></li>
+<li><a href="#6-session-user-password-recovery-jwks-claims-auth-listener">6. Session, User, Password Recovery, JWKS Claims &amp; Auth Listener</a></li>
+<li><a href="#7-multi-factor-authentication-mfa-recovery-codes-webauthn">7. Multi-Factor Authentication (MFA, Recovery Codes &amp; WebAuthn)</a></li>
+<li><a href="#8-passkeys-oauth-server-consent">8. Passkeys &amp; OAuth Server Consent</a><ul>
+<li><a href="#passkeys-two-step-server-flow">Passkeys (Two-Step Server Flow)</a></li>
+<li><a href="#oauth-server-consent-grants">OAuth Server Consent &amp; Grants</a></li>
+</ul>
+</li>
+<li><a href="#9-admin-api-service-role">9. Admin API (Service Role)</a></li>
+</ul>
+</div>
+
+      </div>
+    </aside>
+  </div>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

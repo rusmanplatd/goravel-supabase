@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PostgREST — Goravel Supabase Docs</title>
+  <meta name="description" content="Fluent SELECT, INSERT, UPSERT, UPDATE, DELETE, filters, full-text search, and RPC." />
+  <link rel="stylesheet" href="assets/style.css" />
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("gsb-theme");
+        if (saved === "light" || saved === "dark") {
+          document.documentElement.setAttribute("data-theme", saved);
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-left">
+        <button class="menu-btn" id="menu-toggle" type="button" aria-label="Toggle navigation">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <a class="brand" href="index.html">
+          <span class="brand-badge">GS</span>
+          <span class="brand-text">Goravel Supabase</span>
+        </a>
+        <span class="version-pill">Go SDK</span>
+      </div>
+      <div class="topbar-right">
+        <div class="search-wrap">
+          <input id="nav-search" type="search" placeholder="Filter pages..." aria-label="Filter documentation pages" />
+        </div>
+        <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle color theme" title="Toggle light/dark theme">
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        <a class="repo-link" href="https://github.com/rusmanplatd/goravel-supabase" target="_blank" rel="noopener noreferrer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Documentation</div>
+        <nav class="sidebar-nav" id="sidebar-nav">
+          <a class="nav-link" href="index.html">Overview</a>
+          <a class="nav-link" href="client.html">Client &amp; Facade</a>
+          <a class="nav-link" href="auth.html">Auth (GoTrue)</a>
+          <a class="nav-link active" href="postgrest.html">PostgREST</a>
+          <a class="nav-link" href="storage.html">Storage</a>
+          <a class="nav-link" href="realtime.html">Realtime</a>
+          <a class="nav-link" href="functions.html">Edge Functions</a>
+        </nav>
+      </div>
+      <div class="sidebar-section sidebar-meta">
+        <div class="sidebar-heading">Resources</div>
+        <nav class="sidebar-nav">
+          <a class="nav-link" href="https://github.com/rusmanplatd/goravel-supabase/blob/master/sdk-compliance.yaml" target="_blank" rel="noopener noreferrer">SDK Compliance (257)</a>
+          <a class="nav-link" href="https://github.com/rusmanplatd/goravel-supabase/blob/master/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
+        </nav>
+      </div>
+    </aside>
+
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <main class="content">
+      <article class="prose">
+        <h1 id="postgrest-postgrest">PostgREST (<code>postgrest</code>)</h1>
+<p>The <code>postgrest</code> package provides a fluent, type-safe PostgREST query builder supporting <code>SELECT</code>, <code>INSERT</code>, <code>UPSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, <code>RPC</code>, rich filtering, ordering, pagination, count modes, single-row extraction, CSV/GeoJSON/Explain responses, and automatic retries.</p>
+<ul>
+<li><strong>Package:</strong> <code>github.com/rusmanplatd/goravel-supabase/postgrest</code></li>
+<li><strong>Access via Client:</strong> <code>sb.From(...)</code>, <code>sb.Schema(...)</code>, <code>sb.RPC(...)</code>, or <code>sb.Rest</code> / <code>facades.Supabase().Rest()</code></li>
+</ul>
+<hr />
+<h2 id="1-full-crud-count-example">1. Full CRUD &amp; Count Example</h2>
+<div class="codehilite"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;context&quot;</span>
+<span class="w">    </span><span class="s">&quot;errors&quot;</span>
+<span class="w">    </span><span class="s">&quot;fmt&quot;</span>
+<span class="w">    </span><span class="s">&quot;log&quot;</span>
+
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/client&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/postgrest&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">Country</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">ID</span><span class="w">   </span><span class="kt">int</span><span class="w">    </span><span class="s">`json:&quot;id,omitempty&quot;`</span>
+<span class="w">    </span><span class="nx">Name</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="s">`json:&quot;name&quot;`</span>
+<span class="w">    </span><span class="nx">ISO2</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="s">`json:&quot;iso2&quot;`</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="s">&quot;https://xyzcompany.supabase.co&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sb_publishable_...&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+
+<span class="w">    </span><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+
+<span class="w">    </span><span class="c1">// 1. INSERT and return created rows</span>
+<span class="w">    </span><span class="nx">created</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[[]</span><span class="nx">Country</span><span class="p">](</span><span class="nx">ctx</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;countries&quot;</span><span class="p">).</span>
+<span class="w">            </span><span class="nx">Insert</span><span class="p">([]</span><span class="nx">Country</span><span class="p">{</span>
+<span class="w">                </span><span class="p">{</span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Wakanda&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">ISO2</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;WK&quot;</span><span class="p">},</span>
+<span class="w">            </span><span class="p">},</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">InsertOptions</span><span class="p">{</span><span class="nx">Count</span><span class="p">:</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">CountExact</span><span class="p">}).</span>
+<span class="w">            </span><span class="nx">Select</span><span class="p">(</span><span class="s">&quot;id, name, iso2&quot;</span><span class="p">),</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Inserted:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">created</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1">// 2. SELECT with exact count, ordering, and pagination</span>
+<span class="w">    </span><span class="nx">asc</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">    </span><span class="nx">list</span><span class="p">,</span><span class="w"> </span><span class="nx">resp</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[[]</span><span class="nx">Country</span><span class="p">](</span><span class="nx">ctx</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;countries&quot;</span><span class="p">).</span>
+<span class="w">            </span><span class="nx">Select</span><span class="p">(</span><span class="s">&quot;id, name, iso2&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">SelectOptions</span><span class="p">{</span><span class="nx">Count</span><span class="p">:</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">CountExact</span><span class="p">}).</span>
+<span class="w">            </span><span class="nx">Neq</span><span class="p">(</span><span class="s">&quot;iso2&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;AQ&quot;</span><span class="p">).</span>
+<span class="w">            </span><span class="nx">Order</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">OrderOptions</span><span class="p">{</span><span class="nx">Ascending</span><span class="p">:</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">asc</span><span class="p">}).</span>
+<span class="w">            </span><span class="nx">Range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">9</span><span class="p">),</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;Fetched %d of %d total rows\n&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="nx">list</span><span class="p">),</span><span class="w"> </span><span class="o">*</span><span class="nx">resp</span><span class="p">.</span><span class="nx">Count</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1">// 3. UPSERT with conflict resolution</span>
+<span class="w">    </span><span class="nx">upserted</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[[]</span><span class="nx">Country</span><span class="p">](</span><span class="nx">ctx</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;countries&quot;</span><span class="p">).</span>
+<span class="w">            </span><span class="nx">Upsert</span><span class="p">(</span><span class="nx">Country</span><span class="p">{</span><span class="nx">ID</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Indonesia&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">ISO2</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ID&quot;</span><span class="p">},</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">UpsertOptions</span><span class="p">{</span>
+<span class="w">                </span><span class="nx">OnConflict</span><span class="p">:</span><span class="w">       </span><span class="s">&quot;id&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nx">IgnoreDuplicates</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">            </span><span class="p">}).</span>
+<span class="w">            </span><span class="nx">Select</span><span class="p">(),</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Upserted:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">upserted</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1">// 4. UPDATE with filter</span>
+<span class="w">    </span><span class="nx">updated</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[[]</span><span class="nx">Country</span><span class="p">](</span><span class="nx">ctx</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;countries&quot;</span><span class="p">).</span>
+<span class="w">            </span><span class="nx">Update</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Republic of Indonesia&quot;</span><span class="p">}).</span>
+<span class="w">            </span><span class="nx">Eq</span><span class="p">(</span><span class="s">&quot;iso2&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;ID&quot;</span><span class="p">).</span>
+<span class="w">            </span><span class="nx">Select</span><span class="p">(),</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Updated:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">updated</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1">// 5. DELETE with count</span>
+<span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">delResp</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[[]</span><span class="nx">Country</span><span class="p">](</span><span class="nx">ctx</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;countries&quot;</span><span class="p">).</span>
+<span class="w">            </span><span class="nx">Delete</span><span class="p">(</span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">DeleteOptions</span><span class="p">{</span><span class="nx">Count</span><span class="p">:</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">CountExact</span><span class="p">}).</span>
+<span class="w">            </span><span class="nx">Eq</span><span class="p">(</span><span class="s">&quot;iso2&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;WK&quot;</span><span class="p">),</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">var</span><span class="w"> </span><span class="nx">pgErr</span><span class="w"> </span><span class="o">*</span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">PostgrestError</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">errors</span><span class="p">.</span><span class="nx">As</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">pgErr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatalf</span><span class="p">(</span><span class="s">&quot;PostgREST %d [%s]: %s (hint: %s)&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">pgErr</span><span class="p">.</span><span class="nx">Status</span><span class="p">,</span><span class="w"> </span><span class="nx">pgErr</span><span class="p">.</span><span class="nx">Code</span><span class="p">,</span><span class="w"> </span><span class="nx">pgErr</span><span class="p">.</span><span class="nx">Message</span><span class="p">,</span><span class="w"> </span><span class="nx">pgErr</span><span class="p">.</span><span class="nx">Hint</span><span class="p">)</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Deleted count:&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="nx">delResp</span><span class="p">.</span><span class="nx">Count</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h2 id="2-single-maybesingle-and-head-count-only-queries">2. <code>Single</code>, <code>MaybeSingle</code>, and <code>Head</code> Count-Only Queries</h2>
+<div class="codehilite"><pre><span></span><code><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+
+<span class="c1">// Expect exactly 1 row (returns PostgrestError if 0 or &gt;1 rows)</span>
+<span class="nx">one</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[</span><span class="nx">Country</span><span class="p">](</span><span class="nx">ctx</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;countries&quot;</span><span class="p">).</span><span class="nx">Select</span><span class="p">(</span><span class="s">&quot;*&quot;</span><span class="p">).</span><span class="nx">Eq</span><span class="p">(</span><span class="s">&quot;iso2&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;ID&quot;</span><span class="p">).</span><span class="nx">Single</span><span class="p">(),</span>
+<span class="p">)</span>
+
+<span class="c1">// Expect 0 or 1 row (returns nil pointer if 0 rows)</span>
+<span class="nx">maybeOne</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[</span><span class="o">*</span><span class="nx">Country</span><span class="p">](</span><span class="nx">ctx</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;countries&quot;</span><span class="p">).</span><span class="nx">Select</span><span class="p">(</span><span class="s">&quot;*&quot;</span><span class="p">).</span><span class="nx">Eq</span><span class="p">(</span><span class="s">&quot;iso2&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;ZZ&quot;</span><span class="p">).</span><span class="nx">MaybeSingle</span><span class="p">(),</span>
+<span class="p">)</span>
+
+<span class="c1">// Count-only HEAD request (no response body transferred)</span>
+<span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">headResp</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[[]</span><span class="nx">Country</span><span class="p">](</span><span class="nx">ctx</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;countries&quot;</span><span class="p">).</span><span class="nx">Select</span><span class="p">(</span><span class="s">&quot;*&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">SelectOptions</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Count</span><span class="p">:</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">CountExact</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Head</span><span class="p">:</span><span class="w">  </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="p">}),</span>
+<span class="p">)</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Total rows:&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="nx">headResp</span><span class="p">.</span><span class="nx">Count</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;one:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">one</span><span class="p">.</span><span class="nx">Name</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;maybeOne:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">maybeOne</span><span class="p">)</span>
+</code></pre></div>
+
+<hr />
+<h2 id="3-filtering-pattern-matching-full-text-search-logical-combinators">3. Filtering, Pattern Matching, Full-Text Search &amp; Logical Combinators</h2>
+<div class="codehilite"><pre><span></span><code><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+
+<span class="c1">// Comparison, IN, IS NULL, and pattern matching</span>
+<span class="nx">rows</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[[]</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">](</span><span class="nx">ctx</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;products&quot;</span><span class="p">).</span>
+<span class="w">        </span><span class="nx">Select</span><span class="p">(</span><span class="s">&quot;id, title, price, tags&quot;</span><span class="p">).</span>
+<span class="w">        </span><span class="nx">Gte</span><span class="p">(</span><span class="s">&quot;price&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">).</span>
+<span class="w">        </span><span class="nx">Lte</span><span class="p">(</span><span class="s">&quot;price&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">).</span>
+<span class="w">        </span><span class="nx">In</span><span class="p">(</span><span class="s">&quot;category&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">[]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;books&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;electronics&quot;</span><span class="p">}).</span>
+<span class="w">        </span><span class="nx">Is</span><span class="p">(</span><span class="s">&quot;deleted_at&quot;</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span><span class="p">).</span>
+<span class="w">        </span><span class="nx">ILike</span><span class="p">(</span><span class="s">&quot;title&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;%goravel%&quot;</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1">// Full-text search</span>
+<span class="nx">searchRows</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[[]</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">](</span><span class="nx">ctx</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;articles&quot;</span><span class="p">).</span>
+<span class="w">        </span><span class="nx">Select</span><span class="p">(</span><span class="s">&quot;id, title&quot;</span><span class="p">).</span>
+<span class="w">        </span><span class="nx">TextSearch</span><span class="p">(</span><span class="s">&quot;body&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;supabase &amp; goravel&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">TextSearchOptions</span><span class="p">{</span>
+<span class="w">            </span><span class="nx">Type</span><span class="p">:</span><span class="w">   </span><span class="s">&quot;websearch&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">Config</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;english&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="p">}),</span>
+<span class="p">)</span>
+
+<span class="c1">// Array / JSONB containment &amp; overlaps</span>
+<span class="nx">taggedRows</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[[]</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">](</span><span class="nx">ctx</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;articles&quot;</span><span class="p">).</span>
+<span class="w">        </span><span class="nx">Select</span><span class="p">(</span><span class="s">&quot;id, title, tags&quot;</span><span class="p">).</span>
+<span class="w">        </span><span class="nx">Contains</span><span class="p">(</span><span class="s">&quot;tags&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&quot;go&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;supabase&quot;</span><span class="p">}).</span>
+<span class="w">        </span><span class="nx">Overlaps</span><span class="p">(</span><span class="s">&quot;tags&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&quot;backend&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;api&quot;</span><span class="p">}),</span>
+<span class="p">)</span>
+
+<span class="c1">// Logical OR, NOT, and Match map</span>
+<span class="nx">orRows</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[[]</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">](</span><span class="nx">ctx</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;users&quot;</span><span class="p">).</span>
+<span class="w">        </span><span class="nx">Select</span><span class="p">(</span><span class="s">&quot;id, email, role&quot;</span><span class="p">).</span>
+<span class="w">        </span><span class="nx">Or</span><span class="p">(</span><span class="s">&quot;role.eq.admin,active.eq.true&quot;</span><span class="p">).</span>
+<span class="w">        </span><span class="nx">Not</span><span class="p">(</span><span class="s">&quot;status&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;eq&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;banned&quot;</span><span class="p">).</span>
+<span class="w">        </span><span class="nx">Match</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;org_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">42</span><span class="p">}),</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<hr />
+<h2 id="4-output-formats-csv-geojson-explain-safety-modifiers">4. Output Formats (<code>CSV</code>, <code>GeoJSON</code>, <code>Explain</code>) &amp; Safety Modifiers</h2>
+<div class="codehilite"><pre><span></span><code><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+
+<span class="c1">// CSV export via ExecuteRaw</span>
+<span class="nx">csvResp</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;countries&quot;</span><span class="p">).</span><span class="nx">Select</span><span class="p">(</span><span class="s">&quot;id, name, iso2&quot;</span><span class="p">).</span><span class="nx">CSV</span><span class="p">().</span><span class="nx">ExecuteRaw</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+<span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;CSV:\n&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">string</span><span class="p">(</span><span class="nx">csvResp</span><span class="p">.</span><span class="nx">Data</span><span class="p">))</span>
+
+<span class="c1">// GeoJSON response</span>
+<span class="nx">geoResp</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;locations&quot;</span><span class="p">).</span><span class="nx">Select</span><span class="p">(</span><span class="s">&quot;id, name, geom&quot;</span><span class="p">).</span><span class="nx">GeoJSON</span><span class="p">().</span><span class="nx">ExecuteRaw</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+<span class="nx">_</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">geoResp</span>
+
+<span class="c1">// PostgreSQL EXPLAIN plan</span>
+<span class="nx">analyze</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="kc">true</span>
+<span class="nx">explainResp</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;countries&quot;</span><span class="p">).</span>
+<span class="w">    </span><span class="nx">Select</span><span class="p">(</span><span class="s">&quot;*&quot;</span><span class="p">).</span>
+<span class="w">    </span><span class="nx">Explain</span><span class="p">(</span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">ExplainOptions</span><span class="p">{</span><span class="nx">Analyze</span><span class="p">:</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">analyze</span><span class="p">,</span><span class="w"> </span><span class="nx">Format</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;text&quot;</span><span class="p">}).</span>
+<span class="w">    </span><span class="nx">ExecuteRaw</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Query plan:\n&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">string</span><span class="p">(</span><span class="nx">explainResp</span><span class="p">.</span><span class="nx">Data</span><span class="p">))</span>
+
+<span class="c1">// Safety &amp; per-query modifiers: Rollback, MaxAffected, StripNulls, Timeout, Retry</span>
+<span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[[]</span><span class="nx">Country</span><span class="p">](</span><span class="nx">ctx</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;countries&quot;</span><span class="p">).</span>
+<span class="w">        </span><span class="nx">Update</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Test&quot;</span><span class="p">}).</span>
+<span class="w">        </span><span class="nx">Eq</span><span class="p">(</span><span class="s">&quot;iso2&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;ID&quot;</span><span class="p">).</span>
+<span class="w">        </span><span class="nx">MaxAffected</span><span class="p">(</span><span class="mi">1</span><span class="p">).</span>
+<span class="w">        </span><span class="nx">Rollback</span><span class="p">().</span>
+<span class="w">        </span><span class="nx">StripNulls</span><span class="p">().</span>
+<span class="w">        </span><span class="nx">Timeout</span><span class="p">(</span><span class="mi">5</span><span class="o">*</span><span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">).</span>
+<span class="w">        </span><span class="nx">Retry</span><span class="p">(</span><span class="kc">false</span><span class="p">),</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<hr />
+<h2 id="5-rpc-non-default-schemas-and-goravel-controller-example">5. <code>RPC</code>, Non-Default Schemas, and Goravel Controller Example</h2>
+<div class="codehilite"><pre><span></span><code><span class="c1">// Call a PostgreSQL function (RPC)</span>
+<span class="nx">rpcRows</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[[]</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">](</span><span class="nx">ctx</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">.</span><span class="nx">RPC</span><span class="p">(</span><span class="s">&quot;search_posts&quot;</span><span class="p">,</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;keyword&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;goravel&quot;</span><span class="p">}).</span>
+<span class="w">        </span><span class="nx">Limit</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1">// Query a different schema</span>
+<span class="nx">analyticsRows</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[[]</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">](</span><span class="nx">ctx</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Schema</span><span class="p">(</span><span class="s">&quot;analytics&quot;</span><span class="p">).</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;page_views&quot;</span><span class="p">).</span><span class="nx">Select</span><span class="p">(</span><span class="s">&quot;*&quot;</span><span class="p">).</span><span class="nx">Limit</span><span class="p">(</span><span class="mi">50</span><span class="p">),</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<h3 id="goravel-controller-example">Goravel Controller Example</h3>
+<div class="codehilite"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">controllers</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;github.com/goravel/framework/contracts/http&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/facades&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/postgrest&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">PostController</span><span class="w"> </span><span class="kd">struct</span><span class="p">{}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><span class="nx">PostController</span><span class="p">)</span><span class="w"> </span><span class="nx">Index</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Response</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">sb</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">facades</span><span class="p">.</span><span class="nx">Supabase</span><span class="p">().</span><span class="nx">WithToken</span><span class="p">(</span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Request</span><span class="p">().</span><span class="nx">Header</span><span class="p">(</span><span class="s">&quot;Authorization&quot;</span><span class="p">))</span>
+
+<span class="w">    </span><span class="nx">posts</span><span class="p">,</span><span class="w"> </span><span class="nx">resp</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[[]</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">](</span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Context</span><span class="p">(),</span>
+<span class="w">        </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;posts&quot;</span><span class="p">).</span>
+<span class="w">            </span><span class="nx">Select</span><span class="p">(</span><span class="s">&quot;id, title, created_at&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">SelectOptions</span><span class="p">{</span><span class="nx">Count</span><span class="p">:</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">CountExact</span><span class="p">}).</span>
+<span class="w">            </span><span class="nx">Order</span><span class="p">(</span><span class="s">&quot;created_at&quot;</span><span class="p">).</span>
+<span class="w">            </span><span class="nx">Range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">19</span><span class="p">),</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Json</span><span class="p">{</span><span class="s">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">err</span><span class="p">.</span><span class="nx">Error</span><span class="p">()})</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Success</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="nx">http</span><span class="p">.</span><span class="nx">Json</span><span class="p">{</span>
+<span class="w">        </span><span class="s">&quot;data&quot;</span><span class="p">:</span><span class="w">  </span><span class="nx">posts</span><span class="p">,</span>
+<span class="w">        </span><span class="s">&quot;total&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">resp</span><span class="p">.</span><span class="nx">Count</span><span class="p">,</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="p">}</span>
+</code></pre></div>
+      </article>
+      <nav class="pager" aria-label="Pagination">
+<a class="pager-card pager-prev" href="auth.html"><span class="pager-label">Previous</span><span class="pager-title">&larr; Auth (GoTrue)</span></a>
+<a class="pager-card pager-next" href="storage.html"><span class="pager-label">Next</span><span class="pager-title">Storage &rarr;</span></a>
+</nav>
+    </main>
+
+    <aside class="toc" aria-label="Table of contents">
+      <div class="toc-inner">
+        <div class="toc-heading">On this page</div>
+        <div class="toc">
+<ul>
+<li><a href="#1-full-crud-count-example">1. Full CRUD &amp; Count Example</a></li>
+<li><a href="#2-single-maybesingle-and-head-count-only-queries">2. Single, MaybeSingle, and Head Count-Only Queries</a></li>
+<li><a href="#3-filtering-pattern-matching-full-text-search-logical-combinators">3. Filtering, Pattern Matching, Full-Text Search &amp; Logical Combinators</a></li>
+<li><a href="#4-output-formats-csv-geojson-explain-safety-modifiers">4. Output Formats (CSV, GeoJSON, Explain) &amp; Safety Modifiers</a></li>
+<li><a href="#5-rpc-non-default-schemas-and-goravel-controller-example">5. RPC, Non-Default Schemas, and Goravel Controller Example</a><ul>
+<li><a href="#goravel-controller-example">Goravel Controller Example</a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+      </div>
+    </aside>
+  </div>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

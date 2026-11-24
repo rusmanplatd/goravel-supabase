@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edge Functions — Goravel Supabase Docs</title>
+  <meta name="description" content="JSON, binary, MultipartBody uploads, SSE streaming, regional routing, and typed errors." />
+  <link rel="stylesheet" href="assets/style.css" />
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("gsb-theme");
+        if (saved === "light" || saved === "dark") {
+          document.documentElement.setAttribute("data-theme", saved);
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-left">
+        <button class="menu-btn" id="menu-toggle" type="button" aria-label="Toggle navigation">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <a class="brand" href="index.html">
+          <span class="brand-badge">GS</span>
+          <span class="brand-text">Goravel Supabase</span>
+        </a>
+        <span class="version-pill">Go SDK</span>
+      </div>
+      <div class="topbar-right">
+        <div class="search-wrap">
+          <input id="nav-search" type="search" placeholder="Filter pages..." aria-label="Filter documentation pages" />
+        </div>
+        <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle color theme" title="Toggle light/dark theme">
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        <a class="repo-link" href="https://github.com/rusmanplatd/goravel-supabase" target="_blank" rel="noopener noreferrer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Documentation</div>
+        <nav class="sidebar-nav" id="sidebar-nav">
+          <a class="nav-link" href="index.html">Overview</a>
+          <a class="nav-link" href="client.html">Client &amp; Facade</a>
+          <a class="nav-link" href="auth.html">Auth (GoTrue)</a>
+          <a class="nav-link" href="postgrest.html">PostgREST</a>
+          <a class="nav-link" href="storage.html">Storage</a>
+          <a class="nav-link" href="realtime.html">Realtime</a>
+          <a class="nav-link active" href="functions.html">Edge Functions</a>
+        </nav>
+      </div>
+      <div class="sidebar-section sidebar-meta">
+        <div class="sidebar-heading">Resources</div>
+        <nav class="sidebar-nav">
+          <a class="nav-link" href="https://github.com/rusmanplatd/goravel-supabase/blob/master/sdk-compliance.yaml" target="_blank" rel="noopener noreferrer">SDK Compliance (257)</a>
+          <a class="nav-link" href="https://github.com/rusmanplatd/goravel-supabase/blob/master/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
+        </nav>
+      </div>
+    </aside>
+
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <main class="content">
+      <article class="prose">
+        <h1 id="edge-functions-functions">Edge Functions (<code>functions</code>)</h1>
+<p>The <code>functions</code> package invokes Supabase Edge Functions with support for JSON, raw bytes, <code>io.Reader</code> streams, <code>multipart/form-data</code>, Server-Sent Events (<code>text/event-stream</code>), regional routing, and typed error handling.</p>
+<ul>
+<li><strong>Package:</strong> <code>github.com/rusmanplatd/goravel-supabase/functions</code></li>
+<li><strong>Access via Client:</strong> <code>sb.Functions</code> (pure-Go) or <code>facades.Supabase().Functions()</code> (Goravel)</li>
+</ul>
+<hr />
+<h2 id="1-full-standalone-example-json-custom-headers-region-method-error-handling">1. Full Standalone Example (JSON, Custom Headers, Region, Method &amp; Error Handling)</h2>
+<div class="codehilite"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;context&quot;</span>
+<span class="w">    </span><span class="s">&quot;errors&quot;</span>
+<span class="w">    </span><span class="s">&quot;fmt&quot;</span>
+<span class="w">    </span><span class="s">&quot;log&quot;</span>
+<span class="w">    </span><span class="s">&quot;time&quot;</span>
+
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/client&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/functions&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">OrderResponse</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">OrderID</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="s">`json:&quot;order_id&quot;`</span>
+<span class="w">    </span><span class="nx">Status</span><span class="w">  </span><span class="kt">string</span><span class="w"> </span><span class="s">`json:&quot;status&quot;`</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span>
+<span class="w">        </span><span class="s">&quot;https://xyzcompany.supabase.co&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s">&quot;sb_publishable_...&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithFunctionsRegion</span><span class="p">(</span><span class="nx">functions</span><span class="p">.</span><span class="nx">RegionUsEast1</span><span class="p">),</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+
+<span class="w">    </span><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+
+<span class="w">    </span><span class="nx">res</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Functions</span><span class="p">.</span><span class="nx">Invoke</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;process-order&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">functions</span><span class="p">.</span><span class="nx">InvokeOptions</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Method</span><span class="p">:</span><span class="w">  </span><span class="s">&quot;POST&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Region</span><span class="p">:</span><span class="w">  </span><span class="nx">functions</span><span class="p">.</span><span class="nx">RegionEuWest1</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Timeout</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Headers</span><span class="p">:</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">string</span><span class="p">{</span>
+<span class="w">            </span><span class="s">&quot;X-Idempotency-Key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;order-98765&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nx">Body</span><span class="p">:</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span>
+<span class="w">            </span><span class="s">&quot;item_id&quot;</span><span class="p">:</span><span class="w">  </span><span class="s">&quot;sku_123&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s">&quot;quantity&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">var</span><span class="w"> </span><span class="nx">httpErr</span><span class="w"> </span><span class="o">*</span><span class="nx">functions</span><span class="p">.</span><span class="nx">FunctionsHttpError</span>
+<span class="w">        </span><span class="kd">var</span><span class="w"> </span><span class="nx">relayErr</span><span class="w"> </span><span class="o">*</span><span class="nx">functions</span><span class="p">.</span><span class="nx">FunctionsRelayError</span>
+<span class="w">        </span><span class="kd">var</span><span class="w"> </span><span class="nx">fetchErr</span><span class="w"> </span><span class="o">*</span><span class="nx">functions</span><span class="p">.</span><span class="nx">FunctionsFetchError</span>
+
+<span class="w">        </span><span class="k">switch</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nx">errors</span><span class="p">.</span><span class="nx">As</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">httpErr</span><span class="p">):</span>
+<span class="w">            </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatalf</span><span class="p">(</span><span class="s">&quot;Function HTTP %d: %s&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">httpErr</span><span class="p">.</span><span class="nx">Status</span><span class="p">,</span><span class="w"> </span><span class="nb">string</span><span class="p">(</span><span class="nx">httpErr</span><span class="p">.</span><span class="nx">Body</span><span class="p">))</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nx">errors</span><span class="p">.</span><span class="nx">As</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">relayErr</span><span class="p">):</span>
+<span class="w">            </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatalf</span><span class="p">(</span><span class="s">&quot;Relay error %d: %s&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">relayErr</span><span class="p">.</span><span class="nx">Status</span><span class="p">,</span><span class="w"> </span><span class="nb">string</span><span class="p">(</span><span class="nx">relayErr</span><span class="p">.</span><span class="nx">Body</span><span class="p">))</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nx">errors</span><span class="p">.</span><span class="nx">As</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">fetchErr</span><span class="p">):</span>
+<span class="w">            </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatalf</span><span class="p">(</span><span class="s">&quot;Fetch error: %v&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">fetchErr</span><span class="p">.</span><span class="nx">Err</span><span class="p">)</span>
+<span class="w">        </span><span class="k">default</span><span class="p">:</span>
+<span class="w">            </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="kd">var</span><span class="w"> </span><span class="nx">order</span><span class="w"> </span><span class="nx">OrderResponse</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">res</span><span class="p">.</span><span class="nx">DecodeJSON</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">order</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;Order %s status: %s\n&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">order</span><span class="p">.</span><span class="nx">OrderID</span><span class="p">,</span><span class="w"> </span><span class="nx">order</span><span class="p">.</span><span class="nx">Status</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>Available region constants: <code>RegionAny</code>, <code>RegionApNortheast1</code>, <code>RegionApNortheast2</code>, <code>RegionApSouth1</code>, <code>RegionApSoutheast1</code>, <code>RegionApSoutheast2</code>, <code>RegionCaCentral1</code>, <code>RegionEuCentral1</code>, <code>RegionEuWest1</code>, <code>RegionEuWest2</code>, <code>RegionEuWest3</code>, <code>RegionSaEast1</code>, <code>RegionUsEast1</code>, <code>RegionUsWest1</code>, <code>RegionUsWest2</code>.</p>
+<hr />
+<h2 id="2-goravel-controller-example">2. Goravel Controller Example</h2>
+<div class="codehilite"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">controllers</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;github.com/goravel/framework/contracts/http&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/facades&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/functions&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">FunctionController</span><span class="w"> </span><span class="kd">struct</span><span class="p">{}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><span class="nx">FunctionController</span><span class="p">)</span><span class="w"> </span><span class="nx">Hello</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Response</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">jwt</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Request</span><span class="p">().</span><span class="nx">Header</span><span class="p">(</span><span class="s">&quot;Authorization&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">sb</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">facades</span><span class="p">.</span><span class="nx">Supabase</span><span class="p">().</span><span class="nx">WithToken</span><span class="p">(</span><span class="nx">jwt</span><span class="p">)</span>
+
+<span class="w">    </span><span class="nx">res</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Functions</span><span class="p">().</span><span class="nx">Invoke</span><span class="p">(</span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Context</span><span class="p">(),</span><span class="w"> </span><span class="s">&quot;hello-world&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">functions</span><span class="p">.</span><span class="nx">InvokeOptions</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Region</span><span class="p">:</span><span class="w"> </span><span class="nx">functions</span><span class="p">.</span><span class="nx">RegionApSoutheast1</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Body</span><span class="p">:</span><span class="w">   </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Request</span><span class="p">().</span><span class="nx">Input</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Goravel&quot;</span><span class="p">)},</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="mi">502</span><span class="p">,</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Json</span><span class="p">{</span><span class="s">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">err</span><span class="p">.</span><span class="nx">Error</span><span class="p">()})</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Success</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">Data</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h2 id="3-multipart-form-data-upload-multipartbody">3. Multipart Form-Data Upload (<code>MultipartBody</code>)</h2>
+<div class="codehilite"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;context&quot;</span>
+<span class="w">    </span><span class="s">&quot;fmt&quot;</span>
+<span class="w">    </span><span class="s">&quot;log&quot;</span>
+<span class="w">    </span><span class="s">&quot;os&quot;</span>
+
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/client&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/functions&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="s">&quot;https://xyzcompany.supabase.co&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sb_publishable_...&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+
+<span class="w">    </span><span class="nx">file</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">os</span><span class="p">.</span><span class="nx">Open</span><span class="p">(</span><span class="s">&quot;invoice.pdf&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">file</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+
+<span class="w">    </span><span class="nx">res</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Functions</span><span class="p">.</span><span class="nx">Invoke</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">(),</span><span class="w"> </span><span class="s">&quot;parse-pdf&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">functions</span><span class="p">.</span><span class="nx">InvokeOptions</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Body</span><span class="p">:</span><span class="w"> </span><span class="nx">functions</span><span class="p">.</span><span class="nx">MultipartBody</span><span class="p">{</span>
+<span class="w">            </span><span class="nx">Fields</span><span class="p">:</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">string</span><span class="p">{</span>
+<span class="w">                </span><span class="s">&quot;category&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;invoice&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="s">&quot;currency&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;USD&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nx">Files</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="nx">functions</span><span class="p">.</span><span class="nx">MultipartFile</span><span class="p">{</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="nx">FieldName</span><span class="p">:</span><span class="w">   </span><span class="s">&quot;file&quot;</span><span class="p">,</span>
+<span class="w">                    </span><span class="nx">FileName</span><span class="p">:</span><span class="w">    </span><span class="s">&quot;invoice.pdf&quot;</span><span class="p">,</span>
+<span class="w">                    </span><span class="nx">ContentType</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;application/pdf&quot;</span><span class="p">,</span>
+<span class="w">                    </span><span class="nx">Reader</span><span class="p">:</span><span class="w">      </span><span class="nx">file</span><span class="p">,</span>
+<span class="w">                </span><span class="p">},</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Parsed result:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">res</span><span class="p">.</span><span class="nx">Data</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h2 id="4-streaming-responses-textevent-stream-binary">4. Streaming Responses (<code>text/event-stream</code> &amp; Binary)</h2>
+<p>When an Edge Function returns <code>text/event-stream</code>, <code>res.Stream</code> is an <code>io.ReadCloser</code> that the caller must close:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">res</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Functions</span><span class="p">.</span><span class="nx">Invoke</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;stream-ai&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">functions</span><span class="p">.</span><span class="nx">InvokeOptions</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Body</span><span class="p">:</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;prompt&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Summarize Goravel&quot;</span><span class="p">},</span>
+<span class="p">})</span>
+<span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="k">if</span><span class="w"> </span><span class="nx">res</span><span class="p">.</span><span class="nx">Stream</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">res</span><span class="p">.</span><span class="nx">Stream</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+<span class="w">    </span><span class="nx">scanner</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">bufio</span><span class="p">.</span><span class="nx">NewScanner</span><span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">Stream</span><span class="p">)</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="nx">scanner</span><span class="p">.</span><span class="nx">Scan</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="nx">scanner</span><span class="p">.</span><span class="nx">Text</span><span class="p">())</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">scanner</span><span class="p">.</span><span class="nx">Err</span><span class="p">();</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>For binary responses (<code>application/octet-stream</code> or <code>application/pdf</code>), <code>res.Data</code> is <code>[]byte</code> (and <code>res.RawBody</code> always contains the raw response bytes for non-streaming responses).</p>
+      </article>
+      <nav class="pager" aria-label="Pagination">
+<a class="pager-card pager-prev" href="realtime.html"><span class="pager-label">Previous</span><span class="pager-title">&larr; Realtime</span></a>
+</nav>
+    </main>
+
+    <aside class="toc" aria-label="Table of contents">
+      <div class="toc-inner">
+        <div class="toc-heading">On this page</div>
+        <div class="toc">
+<ul>
+<li><a href="#1-full-standalone-example-json-custom-headers-region-method-error-handling">1. Full Standalone Example (JSON, Custom Headers, Region, Method &amp; Error Handling)</a></li>
+<li><a href="#2-goravel-controller-example">2. Goravel Controller Example</a></li>
+<li><a href="#3-multipart-form-data-upload-multipartbody">3. Multipart Form-Data Upload (MultipartBody)</a></li>
+<li><a href="#4-streaming-responses-textevent-stream-binary">4. Streaming Responses (text/event-stream &amp; Binary)</a></li>
+</ul>
+</div>
+
+      </div>
+    </aside>
+  </div>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

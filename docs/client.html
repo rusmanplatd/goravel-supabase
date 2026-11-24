@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Client &amp; Goravel Facade — Goravel Supabase Docs</title>
+  <meta name="description" content="Root client setup, options, Goravel facades.Supabase(), named connections, and per-request scoping." />
+  <link rel="stylesheet" href="assets/style.css" />
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("gsb-theme");
+        if (saved === "light" || saved === "dark") {
+          document.documentElement.setAttribute("data-theme", saved);
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-left">
+        <button class="menu-btn" id="menu-toggle" type="button" aria-label="Toggle navigation">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <a class="brand" href="index.html">
+          <span class="brand-badge">GS</span>
+          <span class="brand-text">Goravel Supabase</span>
+        </a>
+        <span class="version-pill">Go SDK</span>
+      </div>
+      <div class="topbar-right">
+        <div class="search-wrap">
+          <input id="nav-search" type="search" placeholder="Filter pages..." aria-label="Filter documentation pages" />
+        </div>
+        <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle color theme" title="Toggle light/dark theme">
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        <a class="repo-link" href="https://github.com/rusmanplatd/goravel-supabase" target="_blank" rel="noopener noreferrer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Documentation</div>
+        <nav class="sidebar-nav" id="sidebar-nav">
+          <a class="nav-link" href="index.html">Overview</a>
+          <a class="nav-link active" href="client.html">Client &amp; Facade</a>
+          <a class="nav-link" href="auth.html">Auth (GoTrue)</a>
+          <a class="nav-link" href="postgrest.html">PostgREST</a>
+          <a class="nav-link" href="storage.html">Storage</a>
+          <a class="nav-link" href="realtime.html">Realtime</a>
+          <a class="nav-link" href="functions.html">Edge Functions</a>
+        </nav>
+      </div>
+      <div class="sidebar-section sidebar-meta">
+        <div class="sidebar-heading">Resources</div>
+        <nav class="sidebar-nav">
+          <a class="nav-link" href="https://github.com/rusmanplatd/goravel-supabase/blob/master/sdk-compliance.yaml" target="_blank" rel="noopener noreferrer">SDK Compliance (257)</a>
+          <a class="nav-link" href="https://github.com/rusmanplatd/goravel-supabase/blob/master/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
+        </nav>
+      </div>
+    </aside>
+
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <main class="content">
+      <article class="prose">
+        <h1 id="client-client-goravel-facade">Client (<code>client</code> &amp; Goravel Facade)</h1>
+<p>The <code>client</code> package provides the root pure-Go Supabase SDK client (<code>*client.Client</code>) that wires together <strong>Auth</strong>, <strong>PostgREST</strong>, <strong>Storage</strong>, <strong>Edge Functions</strong>, and <strong>Realtime</strong>. In Goravel applications, <code>facades.Supabase()</code> wraps this client with configuration management, named connections, persistent database session storage, and concurrency-safe per-request scoping.</p>
+<ul>
+<li><strong>Pure-Go Package:</strong> <code>github.com/rusmanplatd/goravel-supabase/client</code></li>
+<li><strong>Goravel Facade:</strong> <code>github.com/rusmanplatd/goravel-supabase/facades</code></li>
+<li><strong>Goravel Contract:</strong> <code>github.com/rusmanplatd/goravel-supabase/contracts</code> (<code>contracts.Supabase</code>)</li>
+</ul>
+<hr />
+<h2 id="1-goravel-integration">1. Goravel Integration</h2>
+<h3 id="installation-configuration">Installation &amp; Configuration</h3>
+<div class="codehilite"><pre><span></span><code>go<span class="w"> </span>get<span class="w"> </span>github.com/rusmanplatd/goravel-supabase
+./artisan<span class="w"> </span>package:install<span class="w"> </span>github.com/rusmanplatd/goravel-supabase
+</code></pre></div>
+
+<p>Configure <code>.env</code>:</p>
+<div class="codehilite"><pre><span></span><code>SUPABASE_CONNECTION=default
+SUPABASE_URL=https://xyzcompany.supabase.co
+SUPABASE_KEY=sb_publishable_...
+SUPABASE_DB_SCHEMA=public
+SUPABASE_AUTH_STORAGE_DRIVER=database
+SUPABASE_AUTH_DB_CONNECTION=
+SUPABASE_AUTH_TABLE=supabase_auth_sessions
+SUPABASE_AUTH_AUTO_MIGRATE=true
+SUPABASE_STORAGE_USE_NEW_HOSTNAME=false
+SUPABASE_FUNCTIONS_REGION=any
+SUPABASE_TRACE_PROPAGATION=false
+</code></pre></div>
+
+<p>To add a named connection (e.g. <code>"analytics"</code> or <code>"admin"</code>), add an entry under <code>connections</code> in <code>config/supabase.go</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="s">&quot;connections&quot;</span><span class="p">:</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span>
+<span class="w">    </span><span class="s">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span>
+<span class="w">        </span><span class="s">&quot;url&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">config</span><span class="p">.</span><span class="nx">Env</span><span class="p">(</span><span class="s">&quot;SUPABASE_URL&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">),</span>
+<span class="w">        </span><span class="s">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">config</span><span class="p">.</span><span class="nx">Env</span><span class="p">(</span><span class="s">&quot;SUPABASE_KEY&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">),</span>
+<span class="w">        </span><span class="c1">// ...</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="s">&quot;admin&quot;</span><span class="p">:</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span>
+<span class="w">        </span><span class="s">&quot;url&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">config</span><span class="p">.</span><span class="nx">Env</span><span class="p">(</span><span class="s">&quot;SUPABASE_URL&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">),</span>
+<span class="w">        </span><span class="s">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">config</span><span class="p">.</span><span class="nx">Env</span><span class="p">(</span><span class="s">&quot;SUPABASE_SERVICE_ROLE_KEY&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">),</span>
+<span class="w">        </span><span class="s">&quot;auth&quot;</span><span class="p">:</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span>
+<span class="w">            </span><span class="s">&quot;storage_driver&quot;</span><span class="p">:</span><span class="w">  </span><span class="s">&quot;memory&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s">&quot;persist_session&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="p">},</span>
+</code></pre></div>
+
+<h3 id="full-goravel-controller-example-per-request-scoping-named-connections">Full Goravel Controller Example (Per-Request Scoping &amp; Named Connections)</h3>
+<div class="codehilite"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">controllers</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;context&quot;</span>
+
+<span class="w">    </span><span class="s">&quot;github.com/goravel/framework/contracts/http&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/facades&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/functions&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/postgrest&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">ProfileController</span><span class="w"> </span><span class="kd">struct</span><span class="p">{}</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">Profile</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">ID</span><span class="w">       </span><span class="kt">string</span><span class="w"> </span><span class="s">`json:&quot;id&quot;`</span>
+<span class="w">    </span><span class="nx">Username</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="s">`json:&quot;username&quot;`</span>
+<span class="w">    </span><span class="nx">Bio</span><span class="w">      </span><span class="kt">string</span><span class="w"> </span><span class="s">`json:&quot;bio&quot;`</span>
+<span class="p">}</span>
+
+<span class="c1">// Show demonstrates concurrency-safe per-request scoping with WithContext, WithToken, and WithSchema.</span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><span class="nx">ProfileController</span><span class="p">)</span><span class="w"> </span><span class="nx">Show</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Response</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">jwt</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Request</span><span class="p">().</span><span class="nx">Header</span><span class="p">(</span><span class="s">&quot;Authorization&quot;</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1">// Derive a lightweight client scoped to this request&#39;s context and JWT</span>
+<span class="w">    </span><span class="c1">// without mutating the shared singleton.</span>
+<span class="w">    </span><span class="nx">sb</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">facades</span><span class="p">.</span><span class="nx">Supabase</span><span class="p">().</span>
+<span class="w">        </span><span class="nx">WithContext</span><span class="p">(</span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Context</span><span class="p">()).</span>
+<span class="w">        </span><span class="nx">WithToken</span><span class="p">(</span><span class="nx">jwt</span><span class="p">).</span>
+<span class="w">        </span><span class="nx">WithSchema</span><span class="p">(</span><span class="s">&quot;public&quot;</span><span class="p">)</span>
+
+<span class="w">    </span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">().</span><span class="nx">GetUser</span><span class="p">(</span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Context</span><span class="p">(),</span><span class="w"> </span><span class="nx">jwt</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="mi">401</span><span class="p">,</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Json</span><span class="p">{</span><span class="s">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;unauthorized&quot;</span><span class="p">})</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="nx">profile</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[</span><span class="nx">Profile</span><span class="p">](</span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Context</span><span class="p">(),</span>
+<span class="w">        </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;profiles&quot;</span><span class="p">).</span><span class="nx">Select</span><span class="p">(</span><span class="s">&quot;id, username, bio&quot;</span><span class="p">).</span><span class="nx">Eq</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">user</span><span class="p">.</span><span class="nx">ID</span><span class="p">).</span><span class="nx">Single</span><span class="p">(),</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="mi">404</span><span class="p">,</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Json</span><span class="p">{</span><span class="s">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">err</span><span class="p">.</span><span class="nx">Error</span><span class="p">()})</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Success</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="nx">profile</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// DynamicToken demonstrates WithAccessToken for dynamic/lazy token resolution.</span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><span class="nx">ProfileController</span><span class="p">)</span><span class="w"> </span><span class="nx">DynamicToken</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Response</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">sb</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">facades</span><span class="p">.</span><span class="nx">Supabase</span><span class="p">().</span><span class="nx">WithAccessToken</span><span class="p">(</span><span class="kd">func</span><span class="p">(</span><span class="nx">reqCtx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Request</span><span class="p">().</span><span class="nx">Header</span><span class="p">(</span><span class="s">&quot;X-Supabase-JWT&quot;</span><span class="p">),</span><span class="w"> </span><span class="kc">nil</span>
+<span class="w">    </span><span class="p">})</span>
+
+<span class="w">    </span><span class="nx">res</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Functions</span><span class="p">().</span><span class="nx">Invoke</span><span class="p">(</span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Context</span><span class="p">(),</span><span class="w"> </span><span class="s">&quot;whoami&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">functions</span><span class="p">.</span><span class="nx">InvokeOptions</span><span class="p">{})</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Json</span><span class="p">{</span><span class="s">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">err</span><span class="p">.</span><span class="nx">Error</span><span class="p">()})</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Success</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">Data</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// AdminAction demonstrates resolving a named connection from config/supabase.go.</span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><span class="nx">ProfileController</span><span class="p">)</span><span class="w"> </span><span class="nx">AdminAction</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Response</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">adminSB</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">facades</span><span class="p">.</span><span class="nx">Supabase</span><span class="p">(</span><span class="s">&quot;admin&quot;</span><span class="p">)</span>
+
+<span class="w">    </span><span class="nx">users</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">adminSB</span><span class="p">.</span><span class="nx">Auth</span><span class="p">().</span><span class="nx">Admin</span><span class="p">.</span><span class="nx">ListUsers</span><span class="p">(</span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Context</span><span class="p">())</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Json</span><span class="p">{</span><span class="s">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">err</span><span class="p">.</span><span class="nx">Error</span><span class="p">()})</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Success</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="nx">users</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h2 id="2-standalone-pure-go-full-example">2. Standalone Pure-Go Full Example</h2>
+<div class="codehilite"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;context&quot;</span>
+<span class="w">    </span><span class="s">&quot;fmt&quot;</span>
+<span class="w">    </span><span class="s">&quot;log&quot;</span>
+<span class="w">    </span><span class="s">&quot;net/http&quot;</span>
+<span class="w">    </span><span class="s">&quot;time&quot;</span>
+
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/auth&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/client&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/functions&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/postgrest&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span>
+<span class="w">        </span><span class="s">&quot;https://xyzcompany.supabase.co&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s">&quot;sb_publishable_...&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithSchema</span><span class="p">(</span><span class="s">&quot;public&quot;</span><span class="p">),</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithHeaders</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">string</span><span class="p">{</span><span class="s">&quot;X-App-Name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;my-go-service&quot;</span><span class="p">}),</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithHTTPClient</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">http</span><span class="p">.</span><span class="nx">Client</span><span class="p">{</span><span class="nx">Timeout</span><span class="p">:</span><span class="w"> </span><span class="mi">15</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">}),</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithDBTimeout</span><span class="p">(</span><span class="mi">10</span><span class="o">*</span><span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">),</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithDBRetry</span><span class="p">(</span><span class="kc">true</span><span class="p">),</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithDBRetryBaseDelay</span><span class="p">(</span><span class="mi">250</span><span class="o">*</span><span class="nx">time</span><span class="p">.</span><span class="nx">Millisecond</span><span class="p">),</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithDBURLLengthLimit</span><span class="p">(</span><span class="mi">8000</span><span class="p">),</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithFlowType</span><span class="p">(</span><span class="nx">auth</span><span class="p">.</span><span class="nx">FlowPKCE</span><span class="p">),</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithPersistSession</span><span class="p">(</span><span class="kc">true</span><span class="p">),</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithAutoRefreshToken</span><span class="p">(</span><span class="kc">true</span><span class="p">),</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithStorageKey</span><span class="p">(</span><span class="s">&quot;my-app-auth-token&quot;</span><span class="p">),</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithUseNewHostname</span><span class="p">(</span><span class="kc">false</span><span class="p">),</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithFunctionsRegion</span><span class="p">(</span><span class="nx">functions</span><span class="p">.</span><span class="nx">RegionUsEast1</span><span class="p">),</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithRealtimeHeartbeatInterval</span><span class="p">(</span><span class="mi">25</span><span class="o">*</span><span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">),</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithRealtimeVsn</span><span class="p">(</span><span class="s">&quot;2.0.0&quot;</span><span class="p">),</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithRealtimeDeferredDisconnect</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">),</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+
+<span class="w">    </span><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+
+<span class="w">    </span><span class="c1">// 1. Top-level PostgREST delegate</span>
+<span class="w">    </span><span class="nx">rows</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[[]</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">](</span><span class="nx">ctx</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;todos&quot;</span><span class="p">).</span><span class="nx">Select</span><span class="p">(</span><span class="s">&quot;id, title&quot;</span><span class="p">).</span><span class="nx">Limit</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Todos:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">rows</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1">// 2. Fetch OpenAPI specification for the active schema</span>
+<span class="w">    </span><span class="nx">spec</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">GetOpenApiSpec</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;OpenAPI paths count:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="nx">spec</span><span class="p">))</span>
+
+<span class="w">    </span><span class="c1">// 3. Derive a schema-scoped client without mutating the root client</span>
+<span class="w">    </span><span class="nx">analyticsRows</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[[]</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">](</span><span class="nx">ctx</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">sb</span><span class="p">.</span><span class="nx">WithSchema</span><span class="p">(</span><span class="s">&quot;analytics&quot;</span><span class="p">).</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;events&quot;</span><span class="p">).</span><span class="nx">Select</span><span class="p">(</span><span class="s">&quot;*&quot;</span><span class="p">).</span><span class="nx">Limit</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Analytics events:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">analyticsRows</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h2 id="3-third-party-auth-mode-withaccesstoken">3. Third-Party Auth Mode (<code>WithAccessToken</code>)</h2>
+<p>When integrating an external identity provider (Clerk, Auth0, Firebase, custom JWT issuer), pass <code>client.WithAccessToken</code>. Built-in <code>sb.Auth</code> methods are disabled (<code>auth.ErrUnsupported</code>), and the callback supplies the bearer token for PostgREST, Storage, Functions, and Realtime:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;context&quot;</span>
+<span class="w">    </span><span class="s">&quot;errors&quot;</span>
+<span class="w">    </span><span class="s">&quot;fmt&quot;</span>
+<span class="w">    </span><span class="s">&quot;log&quot;</span>
+
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/auth&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/client&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/postgrest&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span>
+<span class="w">        </span><span class="s">&quot;https://xyzcompany.supabase.co&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s">&quot;sb_publishable_...&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithAccessToken</span><span class="p">(</span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// Return a fresh JWT from your external auth provider</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...&quot;</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span>
+<span class="w">        </span><span class="p">}),</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+
+<span class="w">    </span><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+
+<span class="w">    </span><span class="c1">// Built-in Auth is intentionally disabled in third-party auth mode</span>
+<span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Auth</span><span class="p">.</span><span class="nx">GetSession</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">errors</span><span class="p">.</span><span class="nx">Is</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">ErrUnsupported</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Built-in auth disabled as expected&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// PostgREST, Storage, Functions, and Realtime automatically use the external token</span>
+<span class="w">    </span><span class="nx">rows</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">postgrest</span><span class="p">.</span><span class="nx">Execute</span><span class="p">[[]</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">](</span><span class="nx">ctx</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">sb</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;notes&quot;</span><span class="p">).</span><span class="nx">Select</span><span class="p">(</span><span class="s">&quot;*&quot;</span><span class="p">),</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="nx">rows</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h2 id="4-available-clientoption-helpers">4. Available <code>client.Option</code> Helpers</h2>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>WithSchema(schema)</code></td>
+<td>Sets default PostgREST schema (default <code>"public"</code>).</td>
+</tr>
+<tr>
+<td><code>WithHeaders(headers)</code></td>
+<td>Adds default headers sent on every request.</td>
+</tr>
+<tr>
+<td><code>WithHTTPClient(hc)</code></td>
+<td>Sets the base <code>*http.Client</code> for all services.</td>
+</tr>
+<tr>
+<td><code>WithLogger(l)</code></td>
+<td>Attaches a <code>transport.Logger</code> for SDK diagnostics.</td>
+</tr>
+<tr>
+<td><code>WithTracePropagation(tp)</code></td>
+<td>Configures W3C Trace Context propagation.</td>
+</tr>
+<tr>
+<td><code>WithAccessToken(fn)</code></td>
+<td>Enables third-party auth token provider mode.</td>
+</tr>
+<tr>
+<td><code>WithAuthStorage(s)</code> / <code>WithAuthLock(l)</code></td>
+<td>Custom <code>auth.Storage</code> and <code>auth.Lock</code> implementations.</td>
+</tr>
+<tr>
+<td><code>WithStorageKey(key)</code></td>
+<td>Custom storage key for persisted auth sessions.</td>
+</tr>
+<tr>
+<td><code>WithPersistSession(bool)</code></td>
+<td>Enables/disables session persistence.</td>
+</tr>
+<tr>
+<td><code>WithAutoRefreshToken(bool)</code></td>
+<td>Enables/disables background token auto-refresh.</td>
+</tr>
+<tr>
+<td><code>WithFlowType(ft)</code></td>
+<td>Sets <code>auth.FlowPKCE</code> or <code>auth.FlowImplicit</code>.</td>
+</tr>
+<tr>
+<td><code>WithDBTimeout(d)</code></td>
+<td>Default timeout for PostgREST requests.</td>
+</tr>
+<tr>
+<td><code>WithDBRetry(bool)</code> / <code>WithDBRetryBaseDelay(d)</code></td>
+<td>Enables/configures PostgREST transient retries.</td>
+</tr>
+<tr>
+<td><code>WithDBURLLengthLimit(limit)</code></td>
+<td>Sets PostgREST URL length threshold.</td>
+</tr>
+<tr>
+<td><code>WithUseNewHostname(bool)</code></td>
+<td>Uses <code>.storage.supabase.co</code> hostname for Storage.</td>
+</tr>
+<tr>
+<td><code>WithFunctionsRegion(region)</code></td>
+<td>Default <code>functions.FunctionRegion</code> for Edge Functions.</td>
+</tr>
+<tr>
+<td><code>WithRealtimeTransport(t)</code></td>
+<td>Custom WebSocket <code>realtime.Transport</code>.</td>
+</tr>
+<tr>
+<td><code>WithRealtimeHeartbeatInterval(d)</code></td>
+<td>Phoenix heartbeat interval.</td>
+</tr>
+<tr>
+<td><code>WithRealtimeVsn(vsn)</code></td>
+<td>Realtime protocol version (e.g. <code>"2.0.0"</code>).</td>
+</tr>
+<tr>
+<td><code>WithRealtimeReconnectAfterMs(fn)</code></td>
+<td>Custom reconnect backoff function.</td>
+</tr>
+<tr>
+<td><code>WithRealtimeDeferredDisconnect(d)</code></td>
+<td>Delay before closing idle Realtime socket.</td>
+</tr>
+</tbody>
+</table>
+      </article>
+      <nav class="pager" aria-label="Pagination">
+<a class="pager-card pager-prev" href="index.html"><span class="pager-label">Previous</span><span class="pager-title">&larr; Overview</span></a>
+<a class="pager-card pager-next" href="auth.html"><span class="pager-label">Next</span><span class="pager-title">Auth (GoTrue) &rarr;</span></a>
+</nav>
+    </main>
+
+    <aside class="toc" aria-label="Table of contents">
+      <div class="toc-inner">
+        <div class="toc-heading">On this page</div>
+        <div class="toc">
+<ul>
+<li><a href="#1-goravel-integration">1. Goravel Integration</a><ul>
+<li><a href="#installation-configuration">Installation &amp; Configuration</a></li>
+<li><a href="#full-goravel-controller-example-per-request-scoping-named-connections">Full Goravel Controller Example (Per-Request Scoping &amp; Named Connections)</a></li>
+</ul>
+</li>
+<li><a href="#2-standalone-pure-go-full-example">2. Standalone Pure-Go Full Example</a></li>
+<li><a href="#3-third-party-auth-mode-withaccesstoken">3. Third-Party Auth Mode (WithAccessToken)</a></li>
+<li><a href="#4-available-clientoption-helpers">4. Available client.Option Helpers</a></li>
+</ul>
+</div>
+
+      </div>
+    </aside>
+  </div>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

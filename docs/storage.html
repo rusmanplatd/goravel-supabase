@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Storage — Goravel Supabase Docs</title>
+  <meta name="description" content="Buckets, file uploads/downloads, image transforms, signed URLs, Analytics Iceberg, and Vectors." />
+  <link rel="stylesheet" href="assets/style.css" />
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("gsb-theme");
+        if (saved === "light" || saved === "dark") {
+          document.documentElement.setAttribute("data-theme", saved);
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-left">
+        <button class="menu-btn" id="menu-toggle" type="button" aria-label="Toggle navigation">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <a class="brand" href="index.html">
+          <span class="brand-badge">GS</span>
+          <span class="brand-text">Goravel Supabase</span>
+        </a>
+        <span class="version-pill">Go SDK</span>
+      </div>
+      <div class="topbar-right">
+        <div class="search-wrap">
+          <input id="nav-search" type="search" placeholder="Filter pages..." aria-label="Filter documentation pages" />
+        </div>
+        <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle color theme" title="Toggle light/dark theme">
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        <a class="repo-link" href="https://github.com/rusmanplatd/goravel-supabase" target="_blank" rel="noopener noreferrer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Documentation</div>
+        <nav class="sidebar-nav" id="sidebar-nav">
+          <a class="nav-link" href="index.html">Overview</a>
+          <a class="nav-link" href="client.html">Client &amp; Facade</a>
+          <a class="nav-link" href="auth.html">Auth (GoTrue)</a>
+          <a class="nav-link" href="postgrest.html">PostgREST</a>
+          <a class="nav-link active" href="storage.html">Storage</a>
+          <a class="nav-link" href="realtime.html">Realtime</a>
+          <a class="nav-link" href="functions.html">Edge Functions</a>
+        </nav>
+      </div>
+      <div class="sidebar-section sidebar-meta">
+        <div class="sidebar-heading">Resources</div>
+        <nav class="sidebar-nav">
+          <a class="nav-link" href="https://github.com/rusmanplatd/goravel-supabase/blob/master/sdk-compliance.yaml" target="_blank" rel="noopener noreferrer">SDK Compliance (257)</a>
+          <a class="nav-link" href="https://github.com/rusmanplatd/goravel-supabase/blob/master/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
+        </nav>
+      </div>
+    </aside>
+
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <main class="content">
+      <article class="prose">
+        <h1 id="storage-storage">Storage (<code>storage</code>)</h1>
+<p>The <code>storage</code> package provides a pure-Go Supabase Storage client covering <strong>Bucket management &amp; lifecycle</strong>, <strong>File uploads/downloads/streaming/image transforms/signed URLs</strong>, <strong>Analytics (Apache Iceberg REST Catalog)</strong>, and <strong>Vector Buckets &amp; Indexes</strong>.</p>
+<ul>
+<li><strong>Package:</strong> <code>github.com/rusmanplatd/goravel-supabase/storage</code></li>
+<li><strong>Access via Client:</strong> <code>sb.Storage</code> (pure-Go) or <code>facades.Supabase().Storage()</code> (Goravel)</li>
+</ul>
+<hr />
+<h2 id="1-bucket-management-lifecycle-rules">1. Bucket Management &amp; Lifecycle Rules</h2>
+<div class="codehilite"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;context&quot;</span>
+<span class="w">    </span><span class="s">&quot;fmt&quot;</span>
+<span class="w">    </span><span class="s">&quot;log&quot;</span>
+
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/client&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/storage&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="s">&quot;https://xyzcompany.supabase.co&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sb_secret_...&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+
+<span class="w">    </span><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+
+<span class="w">    </span><span class="c1">// Create a private bucket with size &amp; MIME restrictions</span>
+<span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Storage</span><span class="p">.</span><span class="nx">CreateBucket</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;avatars&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">storage</span><span class="p">.</span><span class="nx">BucketOptions</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Public</span><span class="p">:</span><span class="w">           </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">FileSizeLimit</span><span class="p">:</span><span class="w">    </span><span class="s">&quot;5MB&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">AllowedMimeTypes</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&quot;image/png&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;image/jpeg&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;image/webp&quot;</span><span class="p">},</span>
+<span class="w">        </span><span class="nx">VersioningStatus</span><span class="p">:</span><span class="w"> </span><span class="nx">storage</span><span class="p">.</span><span class="nx">VersioningEnabled</span><span class="p">,</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// List &amp; inspect buckets</span>
+<span class="w">    </span><span class="nx">buckets</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Storage</span><span class="p">.</span><span class="nx">ListBuckets</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">storage</span><span class="p">.</span><span class="nx">ListBucketsOptions</span><span class="p">{</span><span class="nx">Limit</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span><span class="p">})</span>
+<span class="w">    </span><span class="nx">bucket</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Storage</span><span class="p">.</span><span class="nx">GetBucket</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;avatars&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;Total buckets: %d, selected: %s\n&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="nx">buckets</span><span class="p">),</span><span class="w"> </span><span class="nx">bucket</span><span class="p">.</span><span class="nx">Name</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1">// Update bucket settings</span>
+<span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Storage</span><span class="p">.</span><span class="nx">UpdateBucket</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;avatars&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">storage</span><span class="p">.</span><span class="nx">BucketOptions</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Public</span><span class="p">:</span><span class="w">        </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">FileSizeLimit</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;10MB&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">})</span>
+
+<span class="w">    </span><span class="c1">// Configure lifecycle rules</span>
+<span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Storage</span><span class="p">.</span><span class="nx">UpdateBucketLifecycle</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;avatars&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">storage</span><span class="p">.</span><span class="nx">BucketLifecycleConfiguration</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Rules</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="nx">storage</span><span class="p">.</span><span class="nx">LifecycleRule</span><span class="p">{</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="nx">ID</span><span class="p">:</span><span class="w">     </span><span class="s">&quot;expire-old-versions&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nx">Status</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Enabled&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nx">Prefix</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;tmp/&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Storage</span><span class="p">.</span><span class="nx">GetBucketLifecycle</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;avatars&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">_</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Storage</span><span class="p">.</span><span class="nx">DeleteBucketLifecycle</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;avatars&quot;</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1">// Purge CDN cache, empty, and delete bucket</span>
+<span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Storage</span><span class="p">.</span><span class="nx">PurgeBucketCache</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;avatars&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Storage</span><span class="p">.</span><span class="nx">EmptyBucket</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;avatars&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Storage</span><span class="p">.</span><span class="nx">DeleteBucket</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;avatars&quot;</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h2 id="2-file-operations-upload-download-stream-transforms-signed-urls">2. File Operations (Upload, Download, Stream, Transforms, Signed URLs)</h2>
+<div class="codehilite"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;bytes&quot;</span>
+<span class="w">    </span><span class="s">&quot;context&quot;</span>
+<span class="w">    </span><span class="s">&quot;errors&quot;</span>
+<span class="w">    </span><span class="s">&quot;fmt&quot;</span>
+<span class="w">    </span><span class="s">&quot;io&quot;</span>
+<span class="w">    </span><span class="s">&quot;log&quot;</span>
+<span class="w">    </span><span class="s">&quot;os&quot;</span>
+
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/client&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/storage&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="s">&quot;https://xyzcompany.supabase.co&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sb_publishable_...&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+
+<span class="w">    </span><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+<span class="w">    </span><span class="nx">bucket</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Storage</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;avatars&quot;</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1">// 1. Upload &amp; Update</span>
+<span class="w">    </span><span class="nx">data</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">bytes</span><span class="p">.</span><span class="nx">NewReader</span><span class="p">([]</span><span class="nb">byte</span><span class="p">(</span><span class="s">&quot;fake-png-bytes&quot;</span><span class="p">))</span>
+<span class="w">    </span><span class="nx">upRes</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">bucket</span><span class="p">.</span><span class="nx">Upload</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;users/ada/avatar.png&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">,</span><span class="w"> </span><span class="nx">storage</span><span class="p">.</span><span class="nx">FileOptions</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">ContentType</span><span class="p">:</span><span class="w">  </span><span class="s">&quot;image/png&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">CacheControl</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3600&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Upsert</span><span class="p">:</span><span class="w">       </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Metadata</span><span class="p">:</span><span class="w">     </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;uploaded_by&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ada&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">var</span><span class="w"> </span><span class="nx">apiErr</span><span class="w"> </span><span class="o">*</span><span class="nx">storage</span><span class="p">.</span><span class="nx">StorageApiError</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">errors</span><span class="p">.</span><span class="nx">As</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">apiErr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatalf</span><span class="p">(</span><span class="s">&quot;Storage %d: %s&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">apiErr</span><span class="p">.</span><span class="nx">StatusCode</span><span class="p">,</span><span class="w"> </span><span class="nx">apiErr</span><span class="p">.</span><span class="nx">Message</span><span class="p">)</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Uploaded key:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">upRes</span><span class="p">.</span><span class="nx">Key</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1">// 2. List (v1 &amp; v2), Exists, and Info</span>
+<span class="w">    </span><span class="nx">listV1</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">bucket</span><span class="p">.</span><span class="nx">List</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;users/ada&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">storage</span><span class="p">.</span><span class="nx">SearchOptions</span><span class="p">{</span><span class="nx">Limit</span><span class="p">:</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="nx">Offset</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">})</span>
+<span class="w">    </span><span class="nx">listV2</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">bucket</span><span class="p">.</span><span class="nx">ListV2</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">storage</span><span class="p">.</span><span class="nx">SearchV2Options</span><span class="p">{</span><span class="nx">Prefix</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;users/ada/&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Limit</span><span class="p">:</span><span class="w"> </span><span class="mi">20</span><span class="p">})</span>
+<span class="w">    </span><span class="nx">exists</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">bucket</span><span class="p">.</span><span class="nx">Exists</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;users/ada/avatar.png&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">info</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">bucket</span><span class="p">.</span><span class="nx">Info</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;users/ada/avatar.png&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;v1=%d v2=%d exists=%v size=%d\n&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="nx">listV1</span><span class="p">),</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="nx">listV2</span><span class="p">.</span><span class="nx">Objects</span><span class="p">),</span><span class="w"> </span><span class="nx">exists</span><span class="p">,</span><span class="w"> </span><span class="nx">info</span><span class="p">.</span><span class="nx">Size</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1">// 3. Download with Image Transformation</span>
+<span class="w">    </span><span class="nx">transformed</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">bucket</span><span class="p">.</span><span class="nx">Download</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;users/ada/avatar.png&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">storage</span><span class="p">.</span><span class="nx">DownloadOptions</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Transform</span><span class="p">:</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">storage</span><span class="p">.</span><span class="nx">TransformOptions</span><span class="p">{</span>
+<span class="w">            </span><span class="nx">Width</span><span class="p">:</span><span class="w">   </span><span class="mi">256</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">Height</span><span class="p">:</span><span class="w">  </span><span class="mi">256</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">Resize</span><span class="p">:</span><span class="w">  </span><span class="s">&quot;cover&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">Quality</span><span class="p">:</span><span class="w"> </span><span class="mi">85</span><span class="p">,</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Downloaded transformed bytes:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="nx">transformed</span><span class="p">))</span>
+
+<span class="w">    </span><span class="c1">// 4. Streaming download for large files</span>
+<span class="w">    </span><span class="nx">rc</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">bucket</span><span class="p">.</span><span class="nx">DownloadStream</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;users/ada/avatar.png&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">defer</span><span class="w"> </span><span class="nx">rc</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+<span class="w">        </span><span class="nx">out</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">os</span><span class="p">.</span><span class="nx">Create</span><span class="p">(</span><span class="s">&quot;downloaded.png&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="k">defer</span><span class="w"> </span><span class="nx">out</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+<span class="w">        </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">io</span><span class="p">.</span><span class="nx">Copy</span><span class="p">(</span><span class="nx">out</span><span class="p">,</span><span class="w"> </span><span class="nx">rc</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// 5. Public &amp; Signed URLs (Download + Direct Upload)</span>
+<span class="w">    </span><span class="nx">pubURL</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">bucket</span><span class="p">.</span><span class="nx">GetPublicUrl</span><span class="p">(</span><span class="s">&quot;users/ada/avatar.png&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">storage</span><span class="p">.</span><span class="nx">PublicUrlOptions</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Transform</span><span class="p">:</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">storage</span><span class="p">.</span><span class="nx">TransformOptions</span><span class="p">{</span><span class="nx">Width</span><span class="p">:</span><span class="w"> </span><span class="mi">400</span><span class="p">,</span><span class="w"> </span><span class="nx">Resize</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;contain&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="nx">signedURL</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">bucket</span><span class="p">.</span><span class="nx">CreateSignedUrl</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;users/ada/avatar.png&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">60</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">signedBatch</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">bucket</span><span class="p">.</span><span class="nx">CreateSignedUrls</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&quot;users/ada/avatar.png&quot;</span><span class="p">},</span><span class="w"> </span><span class="mi">60</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">signedUpload</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">bucket</span><span class="p">.</span><span class="nx">CreateSignedUploadUrl</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;users/ada/new.png&quot;</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">bucket</span><span class="p">.</span><span class="nx">UploadToSignedUrl</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;users/ada/new.png&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">signedUpload</span><span class="p">.</span><span class="nx">Token</span><span class="p">,</span><span class="w"> </span><span class="nx">bytes</span><span class="p">.</span><span class="nx">NewReader</span><span class="p">([]</span><span class="nb">byte</span><span class="p">(</span><span class="s">&quot;new&quot;</span><span class="p">)))</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Public:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">pubURL</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Signed:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">signedURL</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Batch:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="nx">signedBatch</span><span class="p">))</span>
+
+<span class="w">    </span><span class="c1">// 6. Copy, Move, PurgeCache, and Remove</span>
+<span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">bucket</span><span class="p">.</span><span class="nx">Copy</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;users/ada/avatar.png&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;users/ada/avatar-copy.png&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">bucket</span><span class="p">.</span><span class="nx">Move</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;users/ada/avatar-copy.png&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;archive/avatar.png&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">bucket</span><span class="p">.</span><span class="nx">PurgeCache</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;users/ada/avatar.png&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">bucket</span><span class="p">.</span><span class="nx">Remove</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&quot;archive/avatar.png&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;users/ada/new.png&quot;</span><span class="p">})</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3 id="goravel-upload-controller-example">Goravel Upload Controller Example</h3>
+<div class="codehilite"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="nx">UploadAvatar</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Response</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">file</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Request</span><span class="p">().</span><span class="nx">File</span><span class="p">(</span><span class="s">&quot;avatar&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Json</span><span class="p">{</span><span class="s">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;missing avatar file&quot;</span><span class="p">})</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nx">f</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">file</span><span class="p">.</span><span class="nx">ReadCloser</span><span class="p">()</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Json</span><span class="p">{</span><span class="s">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">err</span><span class="p">.</span><span class="nx">Error</span><span class="p">()})</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">f</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+
+<span class="w">    </span><span class="nx">sb</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">facades</span><span class="p">.</span><span class="nx">Supabase</span><span class="p">().</span><span class="nx">WithToken</span><span class="p">(</span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Request</span><span class="p">().</span><span class="nx">Header</span><span class="p">(</span><span class="s">&quot;Authorization&quot;</span><span class="p">))</span>
+<span class="w">    </span><span class="nx">res</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Storage</span><span class="p">().</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;avatars&quot;</span><span class="p">).</span><span class="nx">Upload</span><span class="p">(</span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Context</span><span class="p">(),</span><span class="w"> </span><span class="nx">file</span><span class="p">.</span><span class="nx">GetClientOriginalName</span><span class="p">(),</span><span class="w"> </span><span class="nx">f</span><span class="p">,</span><span class="w"> </span><span class="nx">storage</span><span class="p">.</span><span class="nx">FileOptions</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">ContentType</span><span class="p">:</span><span class="w"> </span><span class="nx">file</span><span class="p">.</span><span class="nx">MimeType</span><span class="p">(),</span>
+<span class="w">        </span><span class="nx">Upsert</span><span class="p">:</span><span class="w">      </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Json</span><span class="p">{</span><span class="s">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">err</span><span class="p">.</span><span class="nx">Error</span><span class="p">()})</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Success</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="nx">res</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h2 id="3-analytics-apache-iceberg-rest-catalog">3. Analytics (Apache Iceberg REST Catalog)</h2>
+<div class="codehilite"><pre><span></span><code><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+<span class="nx">analytics</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Storage</span><span class="p">.</span><span class="nx">Analytics</span><span class="p">()</span>
+
+<span class="c1">// Create &amp; list analytics buckets</span>
+<span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">analytics</span><span class="p">.</span><span class="nx">CreateBucket</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;warehouse&quot;</span><span class="p">)</span>
+<span class="nx">buckets</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">analytics</span><span class="p">.</span><span class="nx">ListBuckets</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Analytics buckets:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="nx">buckets</span><span class="p">))</span>
+
+<span class="c1">// Open Iceberg REST Catalog client</span>
+<span class="nx">catalog</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">analytics</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;warehouse&quot;</span><span class="p">)</span>
+<span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// Namespace operations</span>
+<span class="nx">ns</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&quot;events&quot;</span><span class="p">}</span>
+<span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">catalog</span><span class="p">.</span><span class="nx">CreateNamespace</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">ns</span><span class="p">,</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">string</span><span class="p">{</span><span class="s">&quot;owner&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;data-eng&quot;</span><span class="p">})</span>
+<span class="nx">exists</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">catalog</span><span class="p">.</span><span class="nx">NamespaceExists</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">ns</span><span class="p">)</span>
+<span class="nx">meta</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">catalog</span><span class="p">.</span><span class="nx">LoadNamespaceMetadata</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">ns</span><span class="p">)</span>
+<span class="nx">allNS</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">catalog</span><span class="p">.</span><span class="nx">ListNamespaces</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;Namespace exists=%v, meta=%v, total=%d\n&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">exists</span><span class="p">,</span><span class="w"> </span><span class="nx">meta</span><span class="p">,</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="nx">allNS</span><span class="p">))</span>
+
+<span class="c1">// Table operations</span>
+<span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">catalog</span><span class="p">.</span><span class="nx">CreateTable</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">ns</span><span class="p">,</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span>
+<span class="w">    </span><span class="s">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;page_views&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s">&quot;schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span>
+<span class="w">        </span><span class="s">&quot;type&quot;</span><span class="p">:</span><span class="w">      </span><span class="s">&quot;struct&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s">&quot;schema-id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">        </span><span class="s">&quot;fields&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span>
+<span class="w">            </span><span class="p">{</span><span class="s">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;user_id&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;string&quot;</span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span><span class="s">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;path&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;string&quot;</span><span class="p">},</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="p">})</span>
+<span class="nx">tables</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">catalog</span><span class="p">.</span><span class="nx">ListTables</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">ns</span><span class="p">)</span>
+<span class="nx">tableExists</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">catalog</span><span class="p">.</span><span class="nx">TableExists</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">ns</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;page_views&quot;</span><span class="p">)</span>
+<span class="nx">tableMeta</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">catalog</span><span class="p">.</span><span class="nx">LoadTable</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">ns</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;page_views&quot;</span><span class="p">)</span>
+<span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">tables</span><span class="p">,</span><span class="w"> </span><span class="nx">tableExists</span><span class="p">,</span><span class="w"> </span><span class="nx">tableMeta</span>
+
+<span class="c1">// Rename, Drop Table, Drop Namespace, Delete Bucket</span>
+<span class="nx">_</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">catalog</span><span class="p">.</span><span class="nx">RenameTable</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">storage</span><span class="p">.</span><span class="nx">IcebergTableIdentifier</span><span class="p">{</span><span class="nx">Namespace</span><span class="p">:</span><span class="w"> </span><span class="nx">ns</span><span class="p">,</span><span class="w"> </span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;page_views&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="nx">storage</span><span class="p">.</span><span class="nx">IcebergTableIdentifier</span><span class="p">{</span><span class="nx">Namespace</span><span class="p">:</span><span class="w"> </span><span class="nx">ns</span><span class="p">,</span><span class="w"> </span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;page_views_v2&quot;</span><span class="p">},</span>
+<span class="p">)</span>
+<span class="nx">_</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">catalog</span><span class="p">.</span><span class="nx">DropTable</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">ns</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;page_views_v2&quot;</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">)</span>
+<span class="nx">_</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">catalog</span><span class="p">.</span><span class="nx">DropNamespace</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">ns</span><span class="p">)</span>
+<span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">analytics</span><span class="p">.</span><span class="nx">DeleteBucket</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;warehouse&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<hr />
+<h2 id="4-vector-buckets-indexes">4. Vector Buckets &amp; Indexes</h2>
+<div class="codehilite"><pre><span></span><code><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+<span class="nx">vectors</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Storage</span><span class="p">.</span><span class="nx">Vectors</span><span class="p">()</span>
+
+<span class="c1">// 1. Create vector bucket &amp; index</span>
+<span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">vectors</span><span class="p">.</span><span class="nx">CreateBucket</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;embeddings&quot;</span><span class="p">)</span>
+<span class="nx">bucketScope</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">vectors</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="s">&quot;embeddings&quot;</span><span class="p">)</span>
+
+<span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">bucketScope</span><span class="p">.</span><span class="nx">CreateIndex</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">storage</span><span class="p">.</span><span class="nx">CreateIndexOptions</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">IndexName</span><span class="p">:</span><span class="w">      </span><span class="s">&quot;docs-idx&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">DataType</span><span class="p">:</span><span class="w">       </span><span class="s">&quot;float32&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Dimension</span><span class="p">:</span><span class="w">      </span><span class="mi">3</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">DistanceMetric</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;cosine&quot;</span><span class="p">,</span>
+<span class="p">})</span>
+
+<span class="nx">idx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">bucketScope</span><span class="p">.</span><span class="nx">Index</span><span class="p">(</span><span class="s">&quot;docs-idx&quot;</span><span class="p">)</span>
+
+<span class="c1">// 2. Put, Get, List, and Query vectors</span>
+<span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">idx</span><span class="p">.</span><span class="nx">PutVectors</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="p">[]</span><span class="nx">storage</span><span class="p">.</span><span class="nx">VectorItem</span><span class="p">{</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Key</span><span class="p">:</span><span class="w">      </span><span class="s">&quot;doc-1&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Data</span><span class="p">:</span><span class="w">     </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;float32&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="kt">float32</span><span class="p">{</span><span class="mf">0.1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.2</span><span class="p">,</span><span class="w"> </span><span class="mf">0.7</span><span class="p">}},</span>
+<span class="w">        </span><span class="nx">Metadata</span><span class="p">:</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;category&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;guide&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Key</span><span class="p">:</span><span class="w">      </span><span class="s">&quot;doc-2&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Data</span><span class="p">:</span><span class="w">     </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;float32&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="kt">float32</span><span class="p">{</span><span class="mf">0.8</span><span class="p">,</span><span class="w"> </span><span class="mf">0.1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.1</span><span class="p">}},</span>
+<span class="w">        </span><span class="nx">Metadata</span><span class="p">:</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;category&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;api&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="p">})</span>
+
+<span class="nx">items</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">idx</span><span class="p">.</span><span class="nx">GetVectors</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&quot;doc-1&quot;</span><span class="p">},</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">)</span>
+<span class="nx">listed</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">idx</span><span class="p">.</span><span class="nx">ListVectors</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">storage</span><span class="p">.</span><span class="nx">ListVectorsOptions</span><span class="p">{</span><span class="nx">MaxResults</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="nx">ReturnMetadata</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">})</span>
+<span class="nx">matches</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">idx</span><span class="p">.</span><span class="nx">QueryVectors</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">storage</span><span class="p">.</span><span class="nx">QueryVectorsOptions</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">QueryVector</span><span class="p">:</span><span class="w">    </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;float32&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="kt">float32</span><span class="p">{</span><span class="mf">0.1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.2</span><span class="p">,</span><span class="w"> </span><span class="mf">0.7</span><span class="p">}},</span>
+<span class="w">    </span><span class="nx">TopK</span><span class="p">:</span><span class="w">           </span><span class="mi">5</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">Filter</span><span class="p">:</span><span class="w">         </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;category&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;guide&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="nx">ReturnDistance</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">ReturnMetadata</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="p">})</span>
+<span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;Got %d items, listed %d, matches %d\n&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="nx">items</span><span class="p">),</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="nx">listed</span><span class="p">.</span><span class="nx">Vectors</span><span class="p">),</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="nx">matches</span><span class="p">.</span><span class="nx">Vectors</span><span class="p">))</span>
+
+<span class="c1">// 3. Cleanup</span>
+<span class="nx">_</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">idx</span><span class="p">.</span><span class="nx">DeleteVectors</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&quot;doc-1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;doc-2&quot;</span><span class="p">})</span>
+<span class="nx">_</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">bucketScope</span><span class="p">.</span><span class="nx">DeleteIndex</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;docs-idx&quot;</span><span class="p">)</span>
+<span class="nx">_</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">vectors</span><span class="p">.</span><span class="nx">DeleteBucket</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;embeddings&quot;</span><span class="p">)</span>
+</code></pre></div>
+      </article>
+      <nav class="pager" aria-label="Pagination">
+<a class="pager-card pager-prev" href="postgrest.html"><span class="pager-label">Previous</span><span class="pager-title">&larr; PostgREST</span></a>
+<a class="pager-card pager-next" href="realtime.html"><span class="pager-label">Next</span><span class="pager-title">Realtime &rarr;</span></a>
+</nav>
+    </main>
+
+    <aside class="toc" aria-label="Table of contents">
+      <div class="toc-inner">
+        <div class="toc-heading">On this page</div>
+        <div class="toc">
+<ul>
+<li><a href="#1-bucket-management-lifecycle-rules">1. Bucket Management &amp; Lifecycle Rules</a></li>
+<li><a href="#2-file-operations-upload-download-stream-transforms-signed-urls">2. File Operations (Upload, Download, Stream, Transforms, Signed URLs)</a><ul>
+<li><a href="#goravel-upload-controller-example">Goravel Upload Controller Example</a></li>
+</ul>
+</li>
+<li><a href="#3-analytics-apache-iceberg-rest-catalog">3. Analytics (Apache Iceberg REST Catalog)</a></li>
+<li><a href="#4-vector-buckets-indexes">4. Vector Buckets &amp; Indexes</a></li>
+</ul>
+</div>
+
+      </div>
+    </aside>
+  </div>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

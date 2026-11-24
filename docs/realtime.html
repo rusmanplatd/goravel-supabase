@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Realtime — Goravel Supabase Docs</title>
+  <meta name="description" content="Phoenix Channels WebSocket Broadcast, Postgres Changes, Presence, and HTTP Broadcast." />
+  <link rel="stylesheet" href="assets/style.css" />
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("gsb-theme");
+        if (saved === "light" || saved === "dark") {
+          document.documentElement.setAttribute("data-theme", saved);
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-left">
+        <button class="menu-btn" id="menu-toggle" type="button" aria-label="Toggle navigation">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <a class="brand" href="index.html">
+          <span class="brand-badge">GS</span>
+          <span class="brand-text">Goravel Supabase</span>
+        </a>
+        <span class="version-pill">Go SDK</span>
+      </div>
+      <div class="topbar-right">
+        <div class="search-wrap">
+          <input id="nav-search" type="search" placeholder="Filter pages..." aria-label="Filter documentation pages" />
+        </div>
+        <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle color theme" title="Toggle light/dark theme">
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        <a class="repo-link" href="https://github.com/rusmanplatd/goravel-supabase" target="_blank" rel="noopener noreferrer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Documentation</div>
+        <nav class="sidebar-nav" id="sidebar-nav">
+          <a class="nav-link" href="index.html">Overview</a>
+          <a class="nav-link" href="client.html">Client &amp; Facade</a>
+          <a class="nav-link" href="auth.html">Auth (GoTrue)</a>
+          <a class="nav-link" href="postgrest.html">PostgREST</a>
+          <a class="nav-link" href="storage.html">Storage</a>
+          <a class="nav-link active" href="realtime.html">Realtime</a>
+          <a class="nav-link" href="functions.html">Edge Functions</a>
+        </nav>
+      </div>
+      <div class="sidebar-section sidebar-meta">
+        <div class="sidebar-heading">Resources</div>
+        <nav class="sidebar-nav">
+          <a class="nav-link" href="https://github.com/rusmanplatd/goravel-supabase/blob/master/sdk-compliance.yaml" target="_blank" rel="noopener noreferrer">SDK Compliance (257)</a>
+          <a class="nav-link" href="https://github.com/rusmanplatd/goravel-supabase/blob/master/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
+        </nav>
+      </div>
+    </aside>
+
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <main class="content">
+      <article class="prose">
+        <h1 id="realtime-realtime">Realtime (<code>realtime</code>)</h1>
+<p>The <code>realtime</code> package implements a pure-Go Phoenix Channels WebSocket client (supporting JSON v1 and Binary v2 framing) for <strong>Broadcast</strong>, <strong>Presence</strong>, and <strong>Postgres Changes</strong>, plus stateless REST <strong>HTTP Broadcast</strong> (<code>HTTPSend</code>).</p>
+<ul>
+<li><strong>Package:</strong> <code>github.com/rusmanplatd/goravel-supabase/realtime</code></li>
+<li><strong>Access via Client:</strong> <code>sb.Channel(...)</code>, <code>sb.GetChannels()</code>, <code>sb.RemoveChannel(...)</code>, <code>sb.RemoveAllChannels(...)</code>, or <code>sb.Realtime</code> / <code>facades.Supabase().Realtime()</code></li>
+</ul>
+<hr />
+<h2 id="1-websocket-broadcast-full-example">1. WebSocket Broadcast (Full Example)</h2>
+<div class="codehilite"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;context&quot;</span>
+<span class="w">    </span><span class="s">&quot;fmt&quot;</span>
+<span class="w">    </span><span class="s">&quot;log&quot;</span>
+<span class="w">    </span><span class="s">&quot;time&quot;</span>
+
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/client&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/realtime&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span>
+<span class="w">        </span><span class="s">&quot;https://xyzcompany.supabase.co&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s">&quot;sb_publishable_...&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithRealtimeHeartbeatInterval</span><span class="p">(</span><span class="mi">25</span><span class="o">*</span><span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">),</span>
+<span class="w">        </span><span class="nx">client</span><span class="p">.</span><span class="nx">WithRealtimeVsn</span><span class="p">(</span><span class="s">&quot;2.0.0&quot;</span><span class="p">),</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+
+<span class="w">    </span><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+
+<span class="w">    </span><span class="c1">// Monitor WebSocket heartbeats</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Realtime</span><span class="p">.</span><span class="nx">OnHeartbeat</span><span class="p">(</span><span class="kd">func</span><span class="p">(</span><span class="nx">status</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Heartbeat:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">status</span><span class="p">)</span>
+<span class="w">    </span><span class="p">})</span>
+
+<span class="w">    </span><span class="nx">ch</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Channel</span><span class="p">(</span><span class="s">&quot;room:lobby&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">realtime</span><span class="p">.</span><span class="nx">ChannelConfig</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Broadcast</span><span class="p">:</span><span class="w"> </span><span class="nx">realtime</span><span class="p">.</span><span class="nx">BroadcastConfig</span><span class="p">{</span>
+<span class="w">            </span><span class="nx">Self</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">Ack</span><span class="p">:</span><span class="w">  </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nx">Private</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">    </span><span class="p">})</span>
+
+<span class="w">    </span><span class="c1">// Register broadcast listener before calling Subscribe</span>
+<span class="w">    </span><span class="nx">ch</span><span class="p">.</span><span class="nx">OnBroadcast</span><span class="p">(</span><span class="s">&quot;cursor-move&quot;</span><span class="p">,</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">payload</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Cursor update:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="p">)</span>
+<span class="w">    </span><span class="p">})</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ch</span><span class="p">.</span><span class="nx">Subscribe</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">status</span><span class="w"> </span><span class="nx">realtime</span><span class="p">.</span><span class="nx">SubscribeStatus</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;Channel %s status: %s (err=%v)\n&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">ch</span><span class="p">.</span><span class="nx">Topic</span><span class="p">(),</span><span class="w"> </span><span class="nx">status</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">});</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Send broadcast message over WebSocket</span>
+<span class="w">    </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">ch</span><span class="p">.</span><span class="nx">Send</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">realtime</span><span class="p">.</span><span class="nx">SendPayload</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Type</span><span class="p">:</span><span class="w">    </span><span class="s">&quot;broadcast&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Event</span><span class="p">:</span><span class="w">   </span><span class="s">&quot;cursor-move&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Payload</span><span class="p">:</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span><span class="s">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ada&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">120</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">240</span><span class="p">},</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="nx">time</span><span class="p">.</span><span class="nx">Sleep</span><span class="p">(</span><span class="mi">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">_</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">RemoveChannel</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">ch</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h2 id="2-postgres-changes-onpostgreschanges-realtimepostgresfilterbuilder">2. Postgres Changes (<code>OnPostgresChanges</code> + <code>RealtimePostgresFilterBuilder</code>)</h2>
+<p>Subscribe to database <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, or <code>*</code> events:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;context&quot;</span>
+<span class="w">    </span><span class="s">&quot;fmt&quot;</span>
+<span class="w">    </span><span class="s">&quot;log&quot;</span>
+<span class="w">    </span><span class="s">&quot;os&quot;</span>
+<span class="w">    </span><span class="s">&quot;os/signal&quot;</span>
+
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/client&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/realtime&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">sb</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="s">&quot;https://xyzcompany.supabase.co&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sb_publishable_...&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+
+<span class="w">    </span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">stop</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">signal</span><span class="p">.</span><span class="nx">NotifyContext</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">(),</span><span class="w"> </span><span class="nx">os</span><span class="p">.</span><span class="nx">Interrupt</span><span class="p">)</span>
+<span class="w">    </span><span class="k">defer</span><span class="w"> </span><span class="nx">stop</span><span class="p">()</span>
+
+<span class="w">    </span><span class="nx">filter</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">realtime</span><span class="p">.</span><span class="nx">NewPostgresFilterBuilder</span><span class="p">().</span>
+<span class="w">        </span><span class="nx">Eq</span><span class="p">(</span><span class="s">&quot;room_id&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">42</span><span class="p">).</span>
+<span class="w">        </span><span class="nx">Build</span><span class="p">()</span>
+
+<span class="w">    </span><span class="nx">ch</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Channel</span><span class="p">(</span><span class="s">&quot;db-messages&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">ch</span><span class="p">.</span><span class="nx">OnPostgresChanges</span><span class="p">(</span><span class="nx">realtime</span><span class="p">.</span><span class="nx">PostgresChangesFilter</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Event</span><span class="p">:</span><span class="w">  </span><span class="s">&quot;INSERT&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Schema</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;public&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Table</span><span class="p">:</span><span class="w">  </span><span class="s">&quot;messages&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Filter</span><span class="p">:</span><span class="w"> </span><span class="nx">filter</span><span class="p">,</span>
+<span class="w">    </span><span class="p">},</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">payload</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;New message inserted:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="p">)</span>
+<span class="w">    </span><span class="p">})</span>
+
+<span class="w">    </span><span class="nx">ch</span><span class="p">.</span><span class="nx">OnPostgresChanges</span><span class="p">(</span><span class="nx">realtime</span><span class="p">.</span><span class="nx">PostgresChangesFilter</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Event</span><span class="p">:</span><span class="w">  </span><span class="s">&quot;UPDATE&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Schema</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;public&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Table</span><span class="p">:</span><span class="w">  </span><span class="s">&quot;messages&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">},</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">payload</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Message updated:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="p">)</span>
+<span class="w">    </span><span class="p">})</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ch</span><span class="p">.</span><span class="nx">Subscribe</span><span class="p">(</span><span class="nx">ctx</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="o">&lt;-</span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Done</span><span class="p">()</span>
+<span class="w">    </span><span class="nx">_</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">RemoveAllChannels</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">())</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h2 id="3-presence-track-untrack-onpresence-presencestate">3. Presence (<code>Track</code>, <code>Untrack</code>, <code>OnPresence</code>, <code>PresenceState</code>)</h2>
+<div class="codehilite"><pre><span></span><code><span class="nx">ctx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+
+<span class="nx">ch</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Channel</span><span class="p">(</span><span class="s">&quot;room:presence&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">realtime</span><span class="p">.</span><span class="nx">ChannelConfig</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Presence</span><span class="p">:</span><span class="w"> </span><span class="nx">realtime</span><span class="p">.</span><span class="nx">PresenceConfig</span><span class="p">{</span><span class="nx">Key</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;user-ada&quot;</span><span class="p">},</span>
+<span class="p">})</span>
+
+<span class="nx">ch</span><span class="p">.</span><span class="nx">OnPresence</span><span class="p">(</span><span class="s">&quot;sync&quot;</span><span class="p">,</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ev</span><span class="w"> </span><span class="nx">realtime</span><span class="p">.</span><span class="nx">PresenceDiffEvent</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Synced presence state:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">ch</span><span class="p">.</span><span class="nx">PresenceState</span><span class="p">())</span>
+<span class="p">})</span>
+
+<span class="nx">ch</span><span class="p">.</span><span class="nx">OnPresence</span><span class="p">(</span><span class="s">&quot;join&quot;</span><span class="p">,</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ev</span><span class="w"> </span><span class="nx">realtime</span><span class="p">.</span><span class="nx">PresenceDiffEvent</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;Joined %s: %+v\n&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">ev</span><span class="p">.</span><span class="nx">Key</span><span class="p">,</span><span class="w"> </span><span class="nx">ev</span><span class="p">.</span><span class="nx">NewPresences</span><span class="p">)</span>
+<span class="p">})</span>
+
+<span class="nx">ch</span><span class="p">.</span><span class="nx">OnPresence</span><span class="p">(</span><span class="s">&quot;leave&quot;</span><span class="p">,</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ev</span><span class="w"> </span><span class="nx">realtime</span><span class="p">.</span><span class="nx">PresenceDiffEvent</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;Left %s: %+v\n&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">ev</span><span class="p">.</span><span class="nx">Key</span><span class="p">,</span><span class="w"> </span><span class="nx">ev</span><span class="p">.</span><span class="nx">LeftPresences</span><span class="p">)</span>
+<span class="p">})</span>
+
+<span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ch</span><span class="p">.</span><span class="nx">Subscribe</span><span class="p">(</span><span class="nx">ctx</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// Track local presence metadata</span>
+<span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ch</span><span class="p">.</span><span class="nx">Track</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span>
+<span class="w">    </span><span class="s">&quot;username&quot;</span><span class="p">:</span><span class="w">  </span><span class="s">&quot;ada&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s">&quot;online_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Now</span><span class="p">().</span><span class="nx">UTC</span><span class="p">().</span><span class="nx">Format</span><span class="p">(</span><span class="nx">time</span><span class="p">.</span><span class="nx">RFC3339</span><span class="p">),</span>
+<span class="p">});</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// Later, untrack when leaving</span>
+<span class="nx">_</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">ch</span><span class="p">.</span><span class="nx">Untrack</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+</code></pre></div>
+
+<hr />
+<h2 id="4-stateless-http-broadcast-httpsend-in-goravel">4. Stateless HTTP Broadcast (<code>HTTPSend</code> in Goravel)</h2>
+<p>Send broadcast events from HTTP controllers or background jobs without maintaining a WebSocket connection:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">controllers</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;github.com/goravel/framework/contracts/http&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/facades&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/rusmanplatd/goravel-supabase/realtime&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">NotificationController</span><span class="w"> </span><span class="kd">struct</span><span class="p">{}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><span class="nx">NotificationController</span><span class="p">)</span><span class="w"> </span><span class="nx">Broadcast</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Response</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">sb</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">facades</span><span class="p">.</span><span class="nx">Supabase</span><span class="p">()</span>
+<span class="w">    </span><span class="nx">ch</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sb</span><span class="p">.</span><span class="nx">Channel</span><span class="p">(</span><span class="s">&quot;room:announcements&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">realtime</span><span class="p">.</span><span class="nx">ChannelConfig</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Private</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="p">})</span>
+
+<span class="w">    </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ch</span><span class="p">.</span><span class="nx">HTTPSend</span><span class="p">(</span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Context</span><span class="p">(),</span><span class="w"> </span><span class="s">&quot;system_alert&quot;</span><span class="p">,</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">{</span>
+<span class="w">        </span><span class="s">&quot;title&quot;</span><span class="p">:</span><span class="w">   </span><span class="s">&quot;Maintenance Window&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Scheduled upgrade at 02:00 UTC&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">},</span><span class="w"> </span><span class="nx">realtime</span><span class="p">.</span><span class="nx">HTTPSendOptions</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Persist</span><span class="p">:</span><span class="w">    </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">PersistTTL</span><span class="p">:</span><span class="w"> </span><span class="mi">3600</span><span class="p">,</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Json</span><span class="p">{</span><span class="s">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">err</span><span class="p">.</span><span class="nx">Error</span><span class="p">()})</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Response</span><span class="p">().</span><span class="nx">Success</span><span class="p">().</span><span class="nx">Json</span><span class="p">(</span><span class="nx">http</span><span class="p">.</span><span class="nx">Json</span><span class="p">{</span><span class="s">&quot;broadcasted&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">})</span>
+<span class="p">}</span>
+</code></pre></div>
+      </article>
+      <nav class="pager" aria-label="Pagination">
+<a class="pager-card pager-prev" href="storage.html"><span class="pager-label">Previous</span><span class="pager-title">&larr; Storage</span></a>
+<a class="pager-card pager-next" href="functions.html"><span class="pager-label">Next</span><span class="pager-title">Edge Functions &rarr;</span></a>
+</nav>
+    </main>
+
+    <aside class="toc" aria-label="Table of contents">
+      <div class="toc-inner">
+        <div class="toc-heading">On this page</div>
+        <div class="toc">
+<ul>
+<li><a href="#1-websocket-broadcast-full-example">1. WebSocket Broadcast (Full Example)</a></li>
+<li><a href="#2-postgres-changes-onpostgreschanges-realtimepostgresfilterbuilder">2. Postgres Changes (OnPostgresChanges + RealtimePostgresFilterBuilder)</a></li>
+<li><a href="#3-presence-track-untrack-onpresence-presencestate">3. Presence (Track, Untrack, OnPresence, PresenceState)</a></li>
+<li><a href="#4-stateless-http-broadcast-httpsend-in-goravel">4. Stateless HTTP Broadcast (HTTPSend in Goravel)</a></li>
+</ul>
+</div>
+
+      </div>
+    </aside>
+  </div>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>
