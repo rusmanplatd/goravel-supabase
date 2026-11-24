@@ -148,6 +148,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <a class="nav-link" href="{repo_url}/blob/master/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
         </nav>
       </div>
+      <div class="sidebar-section sidebar-meta">
+        <div class="sidebar-heading">Author</div>
+        <nav class="sidebar-nav">
+          <a class="nav-link" href="mailto:rusmanplatd@gmail.com">Email</a>
+          <a class="nav-link" href="https://rusmanplatd.id" target="_blank" rel="noopener noreferrer">Website</a>
+          <a class="nav-link" href="https://instagram.com/rusmanplatd" target="_blank" rel="noopener noreferrer">Instagram</a>
+          <a class="nav-link" href="https://linkedin.com/in/rusmanplatd" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+          <a class="nav-link" href="https://twitter.com/rusmanplatd" target="_blank" rel="noopener noreferrer">Twitter / X</a>
+        </nav>
+      </div>
     </aside>
 
     <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
@@ -157,6 +167,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         {content_html}
       </article>
       {pager_html}
+      <footer class="site-footer">
+        <span>Built by <a href="https://rusmanplatd.id" target="_blank" rel="noopener noreferrer">rusmanplatd</a></span>
+        <span class="footer-links">
+          <a href="mailto:rusmanplatd@gmail.com">Email</a>
+          <a href="https://rusmanplatd.id" target="_blank" rel="noopener noreferrer">Web</a>
+          <a href="https://instagram.com/rusmanplatd" target="_blank" rel="noopener noreferrer">Instagram</a>
+          <a href="https://linkedin.com/in/rusmanplatd" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+          <a href="https://twitter.com/rusmanplatd" target="_blank" rel="noopener noreferrer">Twitter/X</a>
+        </span>
+      </footer>
     </main>
 
     <aside class="toc" aria-label="Table of contents">
@@ -611,6 +631,25 @@ a:hover {{
   margin-top: 44px;
   padding-top: 24px;
   border-top: 1px solid var(--border);
+}}
+
+.site-footer {{
+  margin-top: 32px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}}
+
+.footer-links {{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
 }}
 
 .pager-card {{

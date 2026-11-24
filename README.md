@@ -120,3 +120,11 @@ Run the full test suite (including the automated 257-capability compliance check
 ```bash
 go test ./...
 ```
+
+## Author & Links
+
+- **Email:** [rusmanplatd@gmail.com](mailto:rusmanplatd@gmail.com)
+- **Website:** [https://rusmanplatd.id](https://rusmanplatd.id)
+- **Instagram:** [@rusmanplatd](https://instagram.com/rusmanplatd)
+- **LinkedIn:** [linkedin.com/in/rusmanplatd](https://linkedin.com/in/rusmanplatd)
+- **Twitter / X:** [@rusmanplatd](https://twitter.com/rusmanplatd)
